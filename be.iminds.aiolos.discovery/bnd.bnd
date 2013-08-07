@@ -1,0 +1,16 @@
+-buildpath: be.iminds.aiolos.api;version=latest,\
+	jslp,\
+	osgi.enterprise;version=5.0,\
+	osgi.core;version=5.0,\
+	junit.osgi
+Bundle-Activator: be.iminds.aiolos.discovery.Activator
+Bundle-Version: 0.4.1
+Private-Package: be.iminds.aiolos.discovery,\
+	be.iminds.aiolos.discovery.jslp
+Bundle-Name: AIOLOS Discovery
+-noee: true
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
+Bundle-DocURL: http://aiolos.intec.ugent.be
+-includeresource: ../LICENSE.txt

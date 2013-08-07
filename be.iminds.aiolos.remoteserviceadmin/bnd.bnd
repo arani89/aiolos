@@ -1,0 +1,36 @@
+-buildpath:  \
+	org.apache.felix.gogo.runtime,\
+	osgi.core;version=5.0.0,\
+	osgi.enterprise;version=5.0.0.201203141834,\
+	de.javakaffee.kryo-serializers,\
+	kxml,\
+	junit.osgi,\
+	com.esotericsoftware.kryo;version=2.23,\
+	org.objenesis;version=2.1
+	
+Bundle-Activator: be.iminds.aiolos.rsa.Activator
+Private-Package: be.iminds.aiolos.rsa.command,\
+	be.iminds.aiolos.rsa,\
+	be.iminds.aiolos.rsa.serialization.kryo,\
+	be.iminds.aiolos.rsa.serialization.api,\
+	be.iminds.aiolos.rsa.serialization.java,\
+	be.iminds.aiolos.rsa.exception,\
+	be.iminds.aiolos.rsa.network,\
+	be.iminds.aiolos.rsa.network.api,\
+	be.iminds.aiolos.rsa.network.message,\
+	be.iminds.aiolos.rsa.util
+Bundle-Name: AIOLOS Remote Service Admin
+Bundle-Copyright: Copyright (c) 2012, Ghent University - iMinds
+Bundle-License: http://opensource.org/licenses/BSD-3-Clause
+Bundle-DocURL: http://code.google.com/p/remoteserviceadmin/
+DynamicImport-Package: *
+Import-Package:	org.apache.felix.shell;resolution:=optional,\
+ *
+Bundle-Version: 0.4.1
+Export-Package: be.iminds.aiolos.rsa.exception
+-noee: true
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
+Bundle-DocURL: http://aiolos.intec.ugent.be
+-includeresource: LICENSE.txt

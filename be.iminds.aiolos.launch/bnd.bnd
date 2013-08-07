@@ -1,0 +1,15 @@
+-buildpath:  \
+	osgi.core;version=5.0,\
+	osgi.enterprise;version=5.0,\
+	be.iminds.aiolos.api;version=latest
+	
+Bundle-Version: 0.4.1
+Bundle-Activator: be.iminds.aiolos.launch.Activator
+Private-Package: be.iminds.aiolos.launch
+Bundle-Name: AIOLOS Cloud Launcher
+-noee: true
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
+Bundle-DocURL: http://aiolos.intec.ugent.be
+-includeresource: ../LICENSE.txt

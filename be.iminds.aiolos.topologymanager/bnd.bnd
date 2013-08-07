@@ -1,0 +1,16 @@
+Bundle-Activator: be.iminds.aiolos.topology.Activator
+Private-Package: be.iminds.aiolos.topology,\
+	be.iminds.aiolos.topology.command
+-buildpath: osgi.core;version=5.0.0,\
+	osgi.enterprise;version=5.0.0.201203141834,\
+	be.iminds.aiolos.api;version=latest,\
+	junit.osgi,\
+	org.apache.felix.gogo.runtime
+Bundle-Name: AIOLOS Topology Manager
+Bundle-Version: 0.4.1
+-noee: true
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
+Bundle-DocURL: http://aiolos.intec.ugent.be
+-includeresource: ../LICENSE.txt

@@ -1,0 +1,14 @@
+-buildpath: be.iminds.aiolos.api;version=latest,\
+	osgi.enterprise;version=5.0.0,\
+	osgi.core;version=5.0.0,\
+	junit.osgi
+Bundle-Activator: be.iminds.aiolos.monitor.node.Activator
+Private-Package: be.iminds.aiolos.monitor.node
+Bundle-Name: AIOLOS Node Monitor
+Bundle-Version: 0.4.1
+-noee: true
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
+Bundle-DocURL: http://aiolos.intec.ugent.be
+-includeresource: ../LICENSE.txt

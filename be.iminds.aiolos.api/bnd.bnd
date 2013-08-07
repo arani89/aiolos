@@ -1,0 +1,23 @@
+Export-Package: be.iminds.aiolos.proxy.api,\
+	be.iminds.aiolos.platform.exception,\
+	be.iminds.aiolos.topology.api,\
+	be.iminds.aiolos.info,\
+	be.iminds.aiolos.proxy.policy,\
+	be.iminds.aiolos.monitor.node.api,\
+	be.iminds.aiolos.platform.api,\
+	be.iminds.aiolos.util.log,\
+	be.iminds.aiolos.monitor.service.api,\
+	aiolos.topology.api,\
+	be.iminds.aiolos.deployment.api,\
+	be.iminds.aiolos.resource,\
+	be.iminds.aiolos.cloud.api
+Bundle-Version: 0.4.1
+-buildpath: osgi.enterprise;version=5.0.0.201203141834,\
+	osgi.core;version=5.0.0
+Bundle-Name: AIOLOS API bundle
+-noee: true
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
+Bundle-DocURL: http://aiolos.intec.ugent.be
+-includeresource: ../LICENSE.txt

@@ -1,0 +1,36 @@
+-buildpath:  \
+	osgi.core;version=5.0.0,\
+	osgi.enterprise;version=5.0.0.201203141834,\
+	junit.osgi;version=3.8.2,\
+	org.apache.felix.gogo.runtime,\
+	be.iminds.aiolos.api;version=latest,\
+	com.google.inject;version=latest,\
+	com.google.guava;version='[15.0.0,18.0.0)',\
+	jclouds-compute;version='[1.7.0, 2.0.0)',\
+	jclouds-core;version='[1.7.0, 2.0.0)',\
+	jclouds-scriptbuilder;version='[1.7.0, 2.0.0)',\
+	jclouds-sshj;version='[1.7.0, 2.0.0)',\
+	openstack-nova;version='[1.7.0, 2.0.0)',\
+	aws-ec2;version='[1.7.0, 2.0.0)'
+	
+	
+Bundle-Activator: be.iminds.aiolos.cloud.Activator
+Private-Package: be.iminds.aiolos.cloud
+	
+Bundle-Name: AIOLOS Cloud Manager
+Import-Package:  \
+	org.jclouds.logging.slf4j.config;resolution:=optional,\
+	org.jclouds.aws.ec2.compute;version='[1.7.0,2.0.0)';resolution:=optional,\
+	com.google.common.*;version='[15.0,18)',\
+	*,\
+	
+	
+Bundle-Version: 0.4.1
+Main-Class: be.iminds.aiolos.cloud.Main
+
+-noee: true
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
+Bundle-DocURL: http://aiolos.intec.ugent.be
+-includeresource: ../LICENSE.txt
