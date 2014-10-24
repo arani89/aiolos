@@ -1,7 +1,6 @@
 -runfw: org.apache.felix.framework;version='[4.2.1,4.2.1]'
 -runee: JavaSE-1.6
 
-#aiolos.version='[0.4.0,0.5.0)'
 aiolos.version=latest
 jclouds.version='[1.8.0,1.9.0)'
 
