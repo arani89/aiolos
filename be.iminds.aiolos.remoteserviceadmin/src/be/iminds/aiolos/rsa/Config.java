@@ -40,6 +40,8 @@ public class Config {
 		KRYO
 	}
 	
+	public static String CONFIG_ROSGI = "be.iminds.aiolos.r-osgi";
+	
 	public static int PORT = 9278;  // rsa.port
 	public static String NETWORK_INTERFACE = "eth0";  //rsa.interface
 	public static String IP = null; // rsa.ip

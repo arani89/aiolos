@@ -111,7 +111,7 @@ public class ROSGiEndpoint implements ExportReference {
 		boolean configSupported = false;
 		if(exportedConfigs !=null){
 			for(String config : exportedConfigs){
-				if(config.equals("r-osgi")){
+				if(config.equals(Config.CONFIG_ROSGI)){
 					configSupported = true;
 				}
 			}
@@ -213,7 +213,7 @@ public class ROSGiEndpoint implements ExportReference {
 						frameworkId);
 
 		// SERVICE_IMPORTED_CONFIGS
-		String[] remoteConfigsSupported = new String[]{"r-osgi"}; 
+		String[] remoteConfigsSupported = new String[]{Config.CONFIG_ROSGI}; 
 		endpointDescriptionProperties
 				.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS,
 						remoteConfigsSupported);

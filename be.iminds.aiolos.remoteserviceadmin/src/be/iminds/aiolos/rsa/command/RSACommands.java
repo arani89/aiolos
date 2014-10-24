@@ -43,6 +43,7 @@ import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 
 import be.iminds.aiolos.rsa.Activator;
+import be.iminds.aiolos.rsa.Config;
 import be.iminds.aiolos.rsa.ROSGiServiceAdmin;
 import be.iminds.aiolos.rsa.network.api.NetworkChannel;
 
@@ -82,7 +83,7 @@ public class RSACommands {
 		try {
 			Map<String, Object> properties = new HashMap<String, Object>();
 			properties.put("endpoint.id", uri);
-			properties.put("service.imported.configs", "r-osgi");
+			properties.put("service.imported.configs", Config.CONFIG_ROSGI);
 			properties.put("objectClass", new String[]{clazz});
 			EndpointDescription endpoint = new EndpointDescription(properties);
 			ImportRegistration ir = rsa.importService(endpoint);

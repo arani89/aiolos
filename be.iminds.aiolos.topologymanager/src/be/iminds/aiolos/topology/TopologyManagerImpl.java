@@ -570,14 +570,14 @@ public class TopologyManagerImpl implements TopologyManager, RemoteServiceAdminL
 				
 				EndpointDescription endpointDescription = null;
 				
-				// for now only r-osgi is supported
-				if(configs.contains("r-osgi")){
+				// for now only aiolos r-osgi is supported
+				if(configs.contains("be.iminds.aiolos.r-osgi")){
 					String protocol = "r-osgi";	
 					String uri = protocol+"://"+ip+":"+port;
 					
 					Map<String, Object> properties = new HashMap<String, Object>();
 					properties.put("endpoint.id", uri);
-					properties.put("service.imported.configs", "r-osgi");
+					properties.put("service.imported.configs", "be.iminds.aiolos.r-osgi");
 					properties.put("objectClass", new String[]{EndpointListener.class.getName()});
 					endpointDescription = new EndpointDescription(properties);
 				}

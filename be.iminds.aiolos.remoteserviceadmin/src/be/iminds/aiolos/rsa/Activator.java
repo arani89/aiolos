@@ -74,7 +74,7 @@ public class Activator implements BundleActivator {
 		logService.open();
 		logger = new Logger();
 		Dictionary<String, Object> props = new Hashtable<String, Object>();
-		props.put("remote.configs.supported", new String[]{"r-osgi"});
+		props.put("remote.configs.supported", new String[]{Config.CONFIG_ROSGI});
 		
 		rsa = new ROSGiServiceAdmin(context);
 		rsa.activate();
