@@ -127,12 +127,12 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 		eventAdminTracker.open();
 		
 		// configure!
-		String timeout = context.getProperty("rsa.timeout");
+		String timeout = context.getProperty(Config.PROP_TIMEOUT);
 		if(timeout!=null){
 			Config.TIMEOUT = Integer.parseInt(timeout);
 		}
 		
-		String serialization = context.getProperty("rsa.serialization");
+		String serialization = context.getProperty(Config.PROP_SERIALIZATION);
 		if(serialization!=null){
 			if(serialization.equals("java")){
 				Config.SERIALIZATION = SerializationStrategy.JAVA;
@@ -141,12 +141,12 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 			}
 		}
 		
-		String port = context.getProperty("rsa.port");
+		String port = context.getProperty(Config.PROP_PORT);
 		if(port!=null){
 			Config.PORT = Integer.parseInt(port);
 		}
 		
-		String networkInterface = context.getProperty("rsa.interface");
+		String networkInterface = context.getProperty(Config.PROP_INTERFACE);
 		// first check if it exists
 		try {
 			boolean exists = false;
@@ -166,7 +166,7 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 			}
 		}catch(Exception e){}
 		
-		Config.IP = context.getProperty("rsa.ip");
+		Config.IP = context.getProperty(Config.PROP_IP);
 		
 		
 		try {

@@ -42,6 +42,13 @@ public class Config {
 	
 	public static String CONFIG_ROSGI = "be.iminds.aiolos.r-osgi";
 	
+	public static String PROP_INTERFACE = "rsa.interface";
+	public static String PROP_IP = "rsa.ip";
+	public static String PROP_PORT = "rsa.port";
+	public static String PROP_SERIALIZATION = "rsa.serialization";
+	public static String PROP_TIMEOUT = "rsa.timeout";
+	
+	
 	public static int PORT = 9278;  // rsa.port
 	public static String NETWORK_INTERFACE = "eth0";  //rsa.interface
 	public static String IP = null; // rsa.ip
