@@ -195,7 +195,7 @@ function renderGraph(state){
 	}
 	for(var i in state.components){
 		var component = state.components[i];
-		var id = component.componentId+"-"+component.version+"-"+component.frameworkId;
+		var id = component.componentId+"-"+component.version+"@"+component.frameworkId;
 		if(graph.nodes[id]==undefined)
 			changed = true;
 		graph.addNode(id, {framework : component.frameworkId, 
@@ -226,7 +226,7 @@ function inState(node, state){
 	}
 	for(var i in state.components){
 		var component = state.components[i];	
-		var id = component.componentId+"-"+component.version+"-"+component.frameworkId;
+		var id = component.componentId+"-"+component.version+"@"+component.frameworkId;
 		if(node.id == id)
 			return true;
 	}

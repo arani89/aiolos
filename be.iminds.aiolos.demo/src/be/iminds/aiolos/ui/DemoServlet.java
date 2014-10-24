@@ -100,8 +100,8 @@ public class DemoServlet extends HttpServlet {
 		    	final String node = (String) request.getParameter("node");
 		    	
 		    	if(component!=null){
-		    		int index1 = component.indexOf('-');
-		    		int index2 = component.indexOf('-', index1+1);
+		    		int index2 = component.lastIndexOf('@');
+		    		int index1 = component.substring(0, index2).lastIndexOf('-');
 		    		String componentId = component.substring(0, index1);
 		    		String version = component.substring(index1+1, index2);
 		    		String nodeId = component.substring(index2+1);
@@ -114,7 +114,7 @@ public class DemoServlet extends HttpServlet {
 		    	final String component = (String) request.getParameter("component");
 		    	final String target = (String) request.getParameter("target");
 		    	
-		    	int index1 = component.indexOf('-');
+		    	int index1 = component.lastIndexOf('-');
 		    	String componentId = component.substring(0, index1);
 	    		String version = component.substring(index1+1);
 	    		
@@ -124,8 +124,8 @@ public class DemoServlet extends HttpServlet {
 		    	final String component = (String) request.getParameter("component");
 		    	final String to = (String) request.getParameter("target");
 		    	
-		    	int index1 = component.indexOf('-');
-	    		int index2 = component.indexOf('-', index1+1);
+		    	int index2 = component.lastIndexOf('@');
+	    		int index1 = component.substring(0, index2).lastIndexOf('-');
 	    		String componentId = component.substring(0, index1);
 	    		String version = component.substring(index1+1, index2);
 	    		String from = component.substring(index2+1);
@@ -133,8 +133,8 @@ public class DemoServlet extends HttpServlet {
 	    		migrateComponent(response.getWriter(), componentId, version, from, to);
 		    } else if(action.equals("stop")){
 		    	final String component = (String) request.getParameter("component");
-		    	int index1 = component.indexOf('-');
-	    		int index2 = component.indexOf('-', index1+1);
+		    	int index2 = component.lastIndexOf('@');
+	    		int index1 = component.substring(0, index2).lastIndexOf('-');
 	    		String componentId = component.substring(0, index1);
 	    		String version = component.substring(index1+1, index2);
 	    		String nodeId = component.substring(index2+1);
@@ -237,10 +237,10 @@ public class DemoServlet extends HttpServlet {
 				List<String> from = new ArrayList<String>();
 				List<String> to = new ArrayList<String>();
 				for(ServiceInfo i : p.getInstances()){
-					to.add(i.getComponentId()+"-"+i.getVersion()+"-"+i.getNodeId());
+					to.add(i.getComponentId()+"-"+i.getVersion()+"@"+i.getNodeId());
 				}
 				for(ComponentInfo c : p.getUsers()){
-					from.add(c.getComponentId()+"-"+c.getVersion()+"-"+c.getNodeId());
+					from.add(c.getComponentId()+"-"+c.getVersion()+"@"+c.getNodeId());
 				}
 				
 				for(String f : from){
