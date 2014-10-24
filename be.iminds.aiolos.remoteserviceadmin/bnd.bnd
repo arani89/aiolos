@@ -24,8 +24,12 @@ Bundle-Copyright: Copyright (c) 2012, Ghent University - iMinds
 Bundle-License: http://opensource.org/licenses/BSD-3-Clause
 Bundle-DocURL: http://code.google.com/p/remoteserviceadmin/
 DynamicImport-Package: *
-Import-Package:	org.apache.felix.shell;resolution:=optional,\
- *
+Import-Package:  \
+	org.apache.felix.shell;resolution:=optional,\
+	com.esotericsoftware.kryo*;resolution:=optional,\
+	de.javakaffee.kryoserializers*;resolution:=optional,\
+	org.objenesis*;resolution:=optional,\
+	*
 Bundle-Version: 0.5.0
 Export-Package: be.iminds.aiolos.rsa.exception
 -noee: true
