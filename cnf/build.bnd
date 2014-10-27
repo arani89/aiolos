@@ -9,7 +9,7 @@
 ## For example, to add one addtional plugin to the list defined in ext/repositories.bnd:
 # -plugin: ${ext.repositories.-plugin}, org.example.MyPlugin
 
--pluginpath:	${ext.repositories.-pluginpath}, cnf/plugins/be.iminds.bnd.plugin.android/be.iminds.bnd.plugin.android.jar
+-pluginpath:	${ext.repositories.-pluginpath}, ${workspace}/cnf/plugins/be.iminds.bnd.plugin.android/be.iminds.bnd.plugin.android.jar
 -plugin: 		${ext.repositories.-plugin}, be.iminds.bnd.plugin.android.AndroidPlugin
 
 
