@@ -106,26 +106,27 @@ public class ResourceImpl implements Resource, RepositoryContent {
 	@Override
 	public List<Capability> getCapabilities(String namespace) {
 		List<Capability> result = new ArrayList<Capability>();
-		if(namespace!=null && capabilities.containsKey(namespace)){
-			result.addAll(capabilities.get(namespace));
-		} else {
+		if(namespace==null){
 			for(List<Capability> caps : capabilities.values()){
 				result.addAll(caps);
-			}
-		}
+			}	
+		} else if(capabilities.containsKey(namespace)){
+			result.addAll(capabilities.get(namespace));
+		} 
 		return Collections.unmodifiableList(result);
 	}
 
 	@Override
 	public List<Requirement> getRequirements(String namespace) {
 		List<Requirement> result = new ArrayList<Requirement>();
-		if(namespace!=null && requirements.containsKey(namespace)){
-			result.addAll(requirements.get(namespace));
-		} else {
+		if(namespace==null){
+			// include all
 			for(List<Requirement> reqs : requirements.values()){
 				result.addAll(reqs);
 			}
-		}
+		} else if(requirements.containsKey(namespace)){
+			result.addAll(requirements.get(namespace));
+		} 
 		return Collections.unmodifiableList(result);
 	}
 	
