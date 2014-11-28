@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -76,7 +77,7 @@ public class ServiceProxy implements InvocationHandler {
 	private final Map<ServiceInfo, Object> instances = new HashMap<ServiceInfo, Object>();
 	
 	private final BundleContext context;
-	private final String serviceInterface;
+	private final List<String> serviceInterfaces;
 	private final String componentId;
 	private final String version;
 	private final String serviceId;
@@ -101,7 +102,11 @@ public class ServiceProxy implements InvocationHandler {
 	
 	public ServiceProxy(BundleContext context, String serviceInterface, 
 			String serviceId, String componentId, String version, ServiceReference<?> ref){
-		this.serviceInterface = serviceInterface;
+		this.serviceInterfaces = new ArrayList<String>();
+		StringTokenizer t = new StringTokenizer(serviceInterface,",");
+		while(t.hasMoreTokens()){
+			this.serviceInterfaces.add(t.nextToken());
+		}
 		this.componentId = componentId;
 		this.version = version;
 		this.context = context;
@@ -300,7 +305,7 @@ public class ServiceProxy implements InvocationHandler {
 					RemoteServiceAdmin rsa = (RemoteServiceAdmin) context.getService(rsaRef);
 					if(rsa!=null){
 						Map<String, Object> properties = new HashMap<String, Object>();
-						properties.put(RemoteConstants.SERVICE_EXPORTED_INTERFACES, new String[]{serviceInterface});
+						properties.put(RemoteConstants.SERVICE_EXPORTED_INTERFACES, serviceInterfaces.toArray(new String[serviceInterfaces.size()]));
 						properties.put(ProxyManagerImpl.COMPONENT_ID, componentId);
 						properties.put(ProxyManagerImpl.SERVICE_ID, serviceId);
 						Collection<ExportRegistration> exports = rsa.exportService(proxyRegistration.getReference(), properties);
@@ -335,10 +340,18 @@ public class ServiceProxy implements InvocationHandler {
 	}
 	
 	private void registerProxyService() throws ClassNotFoundException {
-		Class<?> clazz = context.getBundle().loadClass(serviceInterface);
+		Class[] clazzes = new Class[serviceInterfaces.size()];
+		int i =0;
+		boolean isInterface = true;
+		for(String serviceInterface : serviceInterfaces){
+			clazzes[i] = context.getBundle().loadClass(serviceInterface);
+			if(!clazzes[i].isInterface())
+				isInterface = false;
+			i++;
+		}
 		Object monitorProxy;
-		if(clazz.isInterface()){
-			monitorProxy = Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class<?>[]{clazz}, this);
+		if(isInterface){
+			monitorProxy = Proxy.newProxyInstance(this.getClass().getClassLoader(), clazzes, this);
 		} else {
 			// just reregister the object in case no service interface?
 			// work around for e.g. allowing Fragment service on Android
@@ -365,7 +378,7 @@ public class ServiceProxy implements InvocationHandler {
 		serviceProperties.put(ProxyManagerImpl.VERSION, version);
 		serviceProperties.put(ProxyManagerImpl.SERVICE_ID, serviceId);
 		
-		proxyRegistration = context.registerService(clazz.getName(), monitorProxy, serviceProperties);
+		proxyRegistration = context.registerService(serviceInterfaces.toArray(new String[serviceInterfaces.size()]), monitorProxy, serviceProperties);
 		
 	}
 	

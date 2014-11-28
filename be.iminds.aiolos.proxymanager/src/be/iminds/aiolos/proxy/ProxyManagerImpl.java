@@ -82,6 +82,8 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	public final static String INSTANCE_ID = "aiolos.instance.id";
 	// Extra service property to be set callback interfaces that should be uniquely proxied
 	public final static String CALLBACK = "aiolos.callback";
+	// Extra service property to select a number of interfaces that should be treated as one (e.g. interface hierarchy)
+	public final static String COMBINE = "aiolos.combine";
 	
 	private final BundleContext context;
 
@@ -101,7 +103,7 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	@Override
 	public void event(ServiceEvent event,
 			Map<BundleContext, Collection<ListenerInfo>> listeners) {
-		
+	
 		ServiceReference<?> serviceReference = event.getServiceReference();
 		List<String> interfaces = new ArrayList<String>(Arrays.asList((String[])serviceReference.getProperty(Constants.OBJECTCLASS)));
 		
@@ -125,17 +127,19 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 		
 		// Create ComponentInfo
 		ComponentInfo component = new ComponentInfo(componentId, version, nodeId);
-		
 		// some services should not be proxied
 		filterInterfaces(interfaces);
 		if(interfaces.size()==0)
 			return;
 		
+		Object combine = serviceReference.getProperty(COMBINE);
+		if(combine!=null)
+			combineInterfaces(interfaces, combine);
+		
 		// service is not yet proxied
 		// or service is an imported service (and proxy flag is thus set by remote instance)
 		if((serviceReference.getProperty(PROXY) == null)
 				|| (serviceReference.getProperty("service.imported")!=null)){
-			
 			Map<String, ServiceProxy> p = getProxiesOfComponent(componentId, version);
 			
 			// create a serviceproxy for each interface
@@ -251,11 +255,17 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 			String version =  (String)serviceReference.getProperty(VERSION);
 			if(version==null)	
 				version = serviceReference.getBundle().getVersion().toString();
-			
 			Map<String, ServiceProxy> p = getProxiesOfComponent(componentId, version);
 			if(p!=null){	
 				// In case multiple service interface present, just ignore if you find the first one proxied
-				for(String serviceInterface : ((String[])serviceReference.getProperty(Constants.OBJECTCLASS))){
+				List<String> serviceInterfaces = new ArrayList<String>(Arrays.asList(((String[])serviceReference.getProperty(Constants.OBJECTCLASS))));
+				
+				Object combine = serviceReference.getProperty(COMBINE);
+				if(combine!=null){
+					combineInterfaces(serviceInterfaces, combine);
+				}
+				
+				for(String serviceInterface : serviceInterfaces){
 					String instanceId = (String)serviceReference.getProperty(INSTANCE_ID);
 					if(serviceReference.getProperty(CALLBACK)!=null){
 						instanceId = callbackInstanceIds.get(serviceReference);
@@ -308,6 +318,30 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 			}
 		}
 	}
+	
+	protected void combineInterfaces(List<String> interfaces, Object combine){
+		if(combine instanceof String[]){
+			// only combine those defined
+			String combined = "";
+			for(String i : ((String[])combine)){
+				if(interfaces.remove(i)){
+					combined+=i+",";
+				}
+			}
+			combined = combined.substring(0, combined.length()-1);
+			interfaces.add(combined);
+		} else if(combine instanceof String && ((String)combine).equals("*")) {
+			// combine all
+			String combined = "";
+			for(String i : interfaces){
+				combined+=i+",";
+			}
+			combined = combined.substring(0, combined.length()-1);
+			interfaces.clear();
+			interfaces.add(combined);
+		}
+	}
+	
 	
 	private Map<String, ServiceProxy> getProxiesOfComponent(String componentId, String version) {
 		Map<String, ServiceProxy> p = proxies.get(componentId+"-"+version);
