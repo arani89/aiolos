@@ -124,7 +124,7 @@ public class ServiceProxy implements InvocationHandler {
 			Bundle[] usingBundles = proxyRegistration.getReference().getUsingBundles();
 			if(usingBundles!=null){
 				for(Bundle b : usingBundles){
-					if(b.getState()==Bundle.ACTIVE){
+					if(b.getState()==Bundle.ACTIVE && b.getBundleId() > context.getBundle().getBundleId()){
 						String name = b.getSymbolicName();
 						if(name.equals("be.iminds.aiolos.proxymanager") 
 								|| name.equals("be.iminds.aiolos.remoteserviceadmin")

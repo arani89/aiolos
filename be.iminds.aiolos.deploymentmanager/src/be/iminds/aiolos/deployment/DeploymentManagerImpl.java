@@ -80,7 +80,7 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 		
 		// only keep application bundles, so ignore aiolos bundles
 		// TODO this is rather dirty ...
-		if(component.getComponentId().startsWith("be.iminds.aiolos"))
+		if(component==null || component.getComponentId().startsWith("be.iminds.aiolos"))
 			return;
 		
 		switch(event.getType()){	
@@ -312,6 +312,9 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 	}
 
 	private ComponentInfo getComponentInfo(Bundle bundle){
+		if(bundle.getBundleId() < context.getBundle().getBundleId())
+			return null;
+		
 		final String componentId = bundle.getSymbolicName();
 		final String version = bundle.getVersion().toString();
 		final String nodeId = context.getProperty(Constants.FRAMEWORK_UUID);
