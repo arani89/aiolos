@@ -22,7 +22,7 @@ Private-Package: be.iminds.aiolos.rsa.command,\
 Bundle-Name: AIOLOS Remote Service Admin
 Bundle-Copyright: Copyright (c) 2012, Ghent University - iMinds
 Bundle-License: http://opensource.org/licenses/BSD-3-Clause
-Bundle-DocURL: http://code.google.com/p/remoteserviceadmin/
+Bundle-DocURL: http://aiolos.intec.ugent.be
 DynamicImport-Package: *
 Import-Package:  \
 	org.apache.felix.shell;resolution:=optional,\
