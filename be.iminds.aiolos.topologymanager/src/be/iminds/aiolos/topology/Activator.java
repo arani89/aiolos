@@ -220,6 +220,10 @@ public class Activator implements BundleActivator {
 	}
 	
 	private String getArch(){
-		return (String)System.getProperties().get("os.arch");
+		String arch = (String)System.getProperties().get("os.arch");
+		if(arch == null){
+			arch = "unknown";
+		}
+		return arch;
 	}
 }
