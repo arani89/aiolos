@@ -6,29 +6,57 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import be.iminds.aiolos.ds.component.ReferenceDescription.Cardinality;
+import be.iminds.aiolos.ds.component.ReferenceDescription.Policy;
+
 public class ComponentDescription {
 	
-	private final String name;
-	private final String clazz;
+	public enum ConfigurationPolicy {
+		OPTIONAL("optional"),
+		REQUIRE("require"),
+		IGNORE("ignore");
+
+		private final String	value;
+
+		ConfigurationPolicy(String value) {
+			this.value = value;
+		}
+
+		@Override
+		public String toString() {
+			return value;
+		}
+		
+		public static ConfigurationPolicy toConfigurationPolicy(String v){
+			for(int i=0;i<ConfigurationPolicy.values().length;i++){
+				if(ConfigurationPolicy.values()[i].equals(v)){
+					return ConfigurationPolicy.values()[i];
+				}
+			}
+			return null;
+		}
+	}
+	
+	private String name;
+	private String clazz;
 	
 	private boolean enabled = true;
 	private boolean factory = false;
 	private boolean immediate = false;
 	
-	// TOOD configuration policy/pid
+	private String pid = null;
+	private ConfigurationPolicy policy = ConfigurationPolicy.OPTIONAL;
 	
 	private String activate;
 	private String deactivate;
+	private String modified;
 	
 	private List<ServiceDescription> services;
 	private List<ReferenceDescription> references;
 	
 	private Map<String, Object> properties;
 	
-	public ComponentDescription(String name, String clazz){
-		this.name = name;
-		this.clazz = clazz;
-		
+	public ComponentDescription(){
 		this.services = new ArrayList<ServiceDescription>();
 		this.references = new ArrayList<ReferenceDescription>();
 		this.properties = new HashMap<String, Object>();
@@ -38,8 +66,16 @@ public class ComponentDescription {
 		return name;
 	}
 	
+	public void setName(String name){
+		this.name = name;
+	}
+	
 	public String getImplementationClass(){
 		return clazz;
+	}
+	
+	public void setImplementationClass(String clazz){
+		this.clazz = clazz;
 	}
 	
 	public boolean isEnabled(){
@@ -65,6 +101,29 @@ public class ComponentDescription {
 	public void setImmediate(boolean b){
 		this.immediate = b;
 	}
+	
+	public String getConfigurationPID(){
+		if(pid!=null){
+			return pid;
+		} else if(name!=null){
+			return name;
+		} else {
+			return clazz;
+		}
+	}
+	
+	public void setConfigurationPID(String pid){
+		this.pid = pid;
+	}
+	
+	public ConfigurationPolicy getConfigurationPolicy(){
+		return policy;
+	}
+	
+	public void setConfigurationPolicy(ConfigurationPolicy p){
+		this.policy = p;
+	}
+	
 	public String getActivate(){
 		return activate;
 	}
@@ -79,6 +138,14 @@ public class ComponentDescription {
 	
 	public void setDeactivate(String deactivate){
 		this.deactivate = deactivate;
+	}
+	
+	public String getModified(){
+		return modified;
+	}
+	
+	public void setModified(String modified){
+		this.modified = modified;
 	}
 	
 	public void addService(ServiceDescription s){
