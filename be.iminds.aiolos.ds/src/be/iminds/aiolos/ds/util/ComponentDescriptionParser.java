@@ -26,10 +26,8 @@ public class ComponentDescriptionParser {
 	public static List<ComponentDescription> loadComponentDescriptors(Bundle bundle) throws Exception {
 		List<ComponentDescription> descriptions = new ArrayList<ComponentDescription>();
 		
-		System.out.println("Looking for descriptors of bundle "+bundle.getSymbolicName());
 		String descriptorLocations = bundle.getHeaders().get("Service-Component");
 		if(descriptorLocations==null){
-			System.out.println("No descriptors found");
 			return descriptions;
 		}
 		
@@ -65,8 +63,6 @@ public class ComponentDescriptionParser {
 			}
 		}
 		
-		System.out.println(descriptions.size()+" descriptors found");
-		
 		return descriptions;
 	}
 	
@@ -78,12 +74,11 @@ public class ComponentDescriptionParser {
 		parser.setInput(in);
 
 		parser.nextTag();
-		parser.require(XmlPullParser.START_TAG, null, "scr:component");
-		
 		while (parser.getEventType() != XmlPullParser.END_DOCUMENT) { // parser.nextTag()
 			if (parser.getEventType() == XmlPullParser.START_TAG) {
 				
-				if(parser.getName().equals("scr:component")){
+				if(parser.getName().equals("scr:component")
+						|| parser.getName().equals("component")){
 					component = parseComponent(parser);
 				} else if(parser.getName().equals("implementation")){
 					String clazz = parseImplementationClass(parser);
