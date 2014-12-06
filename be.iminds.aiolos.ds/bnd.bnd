@@ -1,8 +1,6 @@
 -buildpath: osgi.core;version=5.0.0,\
 	osgi.enterprise;version=5.0.0.201203141834,\
-	kxml,\
-	junit.osgi,\
-	org.mockito.mockito-all
+	kxml
 	
 Bundle-Activator: be.iminds.aiolos.ds.Activator
 Bundle-Name: AIOLOS DS
