@@ -17,10 +17,15 @@ public class ComponentManager {
 		System.out.println("Register component "+description.getName());
 		
 		Component component;
-		synchronized(components){
-			long id = components.size();
-			component = new Component(id, description, bundle);
-			components.add(component);
+		try {
+			synchronized(components){
+				long id = components.size();
+				component = new Component(id, description, bundle);
+				components.add(component);
+			}
+		} catch(Exception e){
+			System.err.println("Error initializing component "+description.getName());
+			e.printStackTrace();
 		}
 		
 		

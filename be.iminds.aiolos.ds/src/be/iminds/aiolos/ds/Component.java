@@ -1,9 +1,18 @@
 package be.iminds.aiolos.ds;
 
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Iterator;
+import java.util.List;
+
 import org.osgi.framework.Bundle;
+import org.osgi.framework.ServiceFactory;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentConstants;
 
 import be.iminds.aiolos.ds.component.ComponentDescription;
+import be.iminds.aiolos.ds.component.ReferenceDescription;
+import be.iminds.aiolos.ds.component.ServiceDescription;
 
 public class Component {
 
@@ -11,7 +20,6 @@ public class Component {
 		ENABLED("enabled"),
 		SATISFIED("satisfied"),
 		ACTIVE("active"),
-		UNSATISFIED("unsatisfied"),
 		DISABLED("disabled");
 		
 		private final String value;
@@ -29,14 +37,23 @@ public class Component {
 	private final long id;
 	private final ComponentDescription description;
 	private final Bundle bundle;
-	
+	private final List<Reference> references;
+
 	private State state;
 	
+	private Object implementation;
+	private List<ServiceRegistration> registrations = new ArrayList<ServiceRegistration>();
 	
-	public Component(long id, ComponentDescription description, Bundle bundle){
+	public Component(long id, ComponentDescription description, Bundle bundle) throws Exception {
 		this.id = id;
 		this.description = description;
 		this.bundle = bundle;
+
+		this.references = new ArrayList<Reference>();
+		for(ReferenceDescription r : description.getReferences()){
+			Reference reference = new Reference(this, r);
+			references.add(reference);
+		}
 		
 		this.state = State.DISABLED;
 		if(description.isEnabled()){
@@ -60,22 +77,43 @@ public class Component {
 		return state;
 	}
 	
+	public Object getImplementation(){
+		return implementation;
+	}
+	
 	public void enable(){
 		if(this.state != State.DISABLED)
 			return;
 		
 		// enable the component
-		
-		
-		
+		for(Reference r : references){
+			r.open();
+		}
 		this.state = State.ENABLED;
+		
+		System.out.println("ENABLED "+description.getName());
+		
+		// refresh to check whether it is satisfied
+		refresh();
 	}
 	
 	public void activate(){
+		if(this.state != State.SATISFIED)
+			return;
 		
+		System.out.println("ACTIVATE "+description.getName());
+		
+		// initialize class
+		
+		// call all binds
+		
+		// activate
 	}
 	
 	public void deactivate(int reason){
+		if(this.state!= State.ACTIVE){
+			
+		}
 		
 	}
 	
@@ -92,5 +130,76 @@ public class Component {
 	public void refresh(){
 		// check if everything is satisfied, and if so, go to the SATISFIED state
 		// this is triggered everytime a reference is found
+		if(this.state != State.ENABLED){
+			return;
+		}
+		
+		boolean satisfied = true;
+		for(Reference r : references){
+			if(!r.isSatisfied()){
+				satisfied = false;
+			}
+		}
+		
+		if(!satisfied) {
+			return;
+		}
+
+		// register service
+		registerServices();
+		
+		this.state = State.SATISFIED;
+		System.out.println("SATISFIED "+description.getName());
+		
+
+		
 	}
+	
+	private void registerServices(){
+		for(ServiceDescription s : description.getServices()){
+			Dictionary properties = description.getProperties();
+			properties.put("component.id", id);
+			properties.put("component.name", description.getName());
+			ServiceRegistration r = bundle.getBundleContext().registerService(s.getInterfaces(), new ComponentServiceFactory(), properties);
+			registrations.add(r);
+		}
+	}
+	
+	private void unregisterServices(){
+		Iterator<ServiceRegistration> it = registrations.iterator();
+		while(it.hasNext()){
+			ServiceRegistration r = it.next();
+			r.unregister();
+			it.remove();
+		}
+	}
+	
+	
+	// TODO different service factory in case of a component factory?
+	private class ComponentServiceFactory implements ServiceFactory {
+		
+		private int usageCount = 0;
+		
+		@Override
+		public Object getService(Bundle bundle, ServiceRegistration registration) {
+			usageCount++;
+			
+			if(implementation==null){
+				activate();
+			}
+			
+			return implementation;
+		}
+
+		@Override
+		public void ungetService(Bundle bundle,
+				ServiceRegistration registration, Object service) {
+			usageCount--;
+			
+			// TODO do we unitialize again when no longer used?
+		}
+		
+	}
+	
+	
 }

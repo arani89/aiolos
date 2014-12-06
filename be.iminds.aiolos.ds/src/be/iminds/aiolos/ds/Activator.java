@@ -38,6 +38,11 @@ public class Activator implements BundleActivator {
 	public void stop(BundleContext context) throws Exception {
 		
 		context.removeBundleListener(listener);
+		
+		// TODO better just unregister all components instead of iterating over bundles
+		for(Bundle b : context.getBundles()){
+			manager.unregisterComponents(b);
+		}
 	}
 
 	

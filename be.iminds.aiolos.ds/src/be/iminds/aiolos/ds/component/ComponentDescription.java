@@ -2,12 +2,10 @@ package be.iminds.aiolos.ds.component;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-
-import be.iminds.aiolos.ds.component.ReferenceDescription.Cardinality;
-import be.iminds.aiolos.ds.component.ReferenceDescription.Policy;
 
 public class ComponentDescription {
 	
@@ -54,12 +52,12 @@ public class ComponentDescription {
 	private List<ServiceDescription> services;
 	private List<ReferenceDescription> references;
 	
-	private Map<String, Object> properties;
+	private Dictionary<String, Object> properties;
 	
 	public ComponentDescription(){
 		this.services = new ArrayList<ServiceDescription>();
 		this.references = new ArrayList<ReferenceDescription>();
-		this.properties = new HashMap<String, Object>();
+		this.properties = new Hashtable<String, Object>();
 	}
 	
 	public String getName(){
@@ -168,7 +166,7 @@ public class ComponentDescription {
 		this.properties.put(key, value);
 	}
 	
-	public Map<String, Object> getProperties(){
-		return Collections.unmodifiableMap(properties);
+	public Dictionary<String, Object> getProperties(){
+		return properties;
 	}
 }
