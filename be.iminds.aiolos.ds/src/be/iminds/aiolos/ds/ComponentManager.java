@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.osgi.framework.Bundle;
+import org.osgi.service.component.ComponentConstants;
 
 import be.iminds.aiolos.ds.component.ComponentDescription;
 
@@ -30,8 +31,7 @@ public class ComponentManager {
 		synchronized(components){
 			for(Component c : components){
 				if(c.getBundle()==bundle){
-					// TODO is it the dispose method we should call?
-					c.dispose();
+					c.deactivate(ComponentConstants.DEACTIVATION_REASON_BUNDLE_STOPPED);
 				}
 			}
 			
