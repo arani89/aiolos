@@ -103,14 +103,14 @@ public class Component {
 		
 		System.out.println("ACTIVATE "+description.getName());
 		
-		// initialize class
+		// TODO initialize class
 		if(implementation==null){
 			
 		}
 		
-		// call all binds
+		// TODO call all binds
 		
-		// call activate
+		// TODO call activate
 		
 		
 		this.state = State.ACTIVE;
@@ -118,7 +118,9 @@ public class Component {
 	
 	public synchronized void deactivate(int reason){
 		if(this.state!= State.ACTIVE){
+			unregisterServices();
 			
+			// TODO call deactivate
 		}
 		
 	}
@@ -156,8 +158,6 @@ public class Component {
 		
 		this.state = State.SATISFIED;
 		System.out.println("SATISFIED "+description.getName());
-		
-
 		
 	}
 	
