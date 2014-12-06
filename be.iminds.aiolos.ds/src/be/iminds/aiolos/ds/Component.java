@@ -81,7 +81,7 @@ public class Component {
 		return implementation;
 	}
 	
-	public void enable(){
+	public synchronized void enable(){
 		if(this.state != State.DISABLED)
 			return;
 		
@@ -97,37 +97,43 @@ public class Component {
 		refresh();
 	}
 	
-	public void activate(){
+	public synchronized void activate(){
 		if(this.state != State.SATISFIED)
 			return;
 		
 		System.out.println("ACTIVATE "+description.getName());
 		
 		// initialize class
+		if(implementation==null){
+			
+		}
 		
 		// call all binds
 		
-		// activate
+		// call activate
+		
+		
+		this.state = State.ACTIVE;
 	}
 	
-	public void deactivate(int reason){
+	public synchronized void deactivate(int reason){
 		if(this.state!= State.ACTIVE){
 			
 		}
 		
 	}
 	
-	public void disable(){
+	public synchronized void disable(){
 		
 		deactivate(ComponentConstants.DEACTIVATION_REASON_DISABLED);
 	}
 	
-	public void dispose(){
+	public synchronized void dispose(){
 		
 		deactivate(ComponentConstants.DEACTIVATION_REASON_DISPOSED);
 	}
 	
-	public void refresh(){
+	public synchronized void refresh(){
 		// check if everything is satisfied, and if so, go to the SATISFIED state
 		// this is triggered everytime a reference is found
 		if(this.state != State.ENABLED){
@@ -184,7 +190,7 @@ public class Component {
 		public Object getService(Bundle bundle, ServiceRegistration registration) {
 			usageCount++;
 			
-			if(implementation==null){
+			if(state == State.SATISFIED){
 				activate();
 			}
 			
