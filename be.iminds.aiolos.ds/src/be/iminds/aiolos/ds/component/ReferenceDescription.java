@@ -21,7 +21,7 @@ public class ReferenceDescription {
 		
 		public static Cardinality toCardinality(String v){
 			for(int i=0;i<Cardinality.values().length;i++){
-				if(Cardinality.values()[i].equals(v)){
+				if(Cardinality.values()[i].toString().equals(v)){
 					return Cardinality.values()[i];
 				}
 			}
@@ -46,7 +46,7 @@ public class ReferenceDescription {
 		
 		public static Policy toPolicy(String v){
 			for(int i=0;i<Policy.values().length;i++){
-				if(Policy.values()[i].equals(v)){
+				if(Policy.values()[i].toString().equals(v)){
 					return Policy.values()[i];
 				}
 			}
@@ -71,7 +71,7 @@ public class ReferenceDescription {
 		
 		public static PolicyOption toPolicyOption(String v){
 			for(int i=0;i<PolicyOption.values().length;i++){
-				if(PolicyOption.values()[i].equals(v)){
+				if(PolicyOption.values()[i].toString().equals(v)){
 					return PolicyOption.values()[i];
 				}
 			}

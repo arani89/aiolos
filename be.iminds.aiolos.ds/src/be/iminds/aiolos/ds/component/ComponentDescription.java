@@ -27,7 +27,7 @@ public class ComponentDescription {
 		
 		public static ConfigurationPolicy toConfigurationPolicy(String v){
 			for(int i=0;i<ConfigurationPolicy.values().length;i++){
-				if(ConfigurationPolicy.values()[i].equals(v)){
+				if(ConfigurationPolicy.values()[i].toString().equals(v)){
 					return ConfigurationPolicy.values()[i];
 				}
 			}
