@@ -1,4 +1,4 @@
-package be.iminds.aiolos.ds.component;
+package be.iminds.aiolos.ds.description;
 
 public class ServiceDescription {
 

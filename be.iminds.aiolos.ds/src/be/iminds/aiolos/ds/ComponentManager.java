@@ -6,7 +6,7 @@ import java.util.List;
 import org.osgi.framework.Bundle;
 import org.osgi.service.component.ComponentConstants;
 
-import be.iminds.aiolos.ds.component.ComponentDescription;
+import be.iminds.aiolos.ds.description.ComponentDescription;
 
 
 public class ComponentManager {

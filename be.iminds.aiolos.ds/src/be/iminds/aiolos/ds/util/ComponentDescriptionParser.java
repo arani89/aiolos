@@ -13,13 +13,13 @@ import org.kxml2.io.KXmlParser;
 import org.osgi.framework.Bundle;
 import org.xmlpull.v1.XmlPullParser;
 
-import be.iminds.aiolos.ds.component.ComponentDescription;
-import be.iminds.aiolos.ds.component.ComponentDescription.ConfigurationPolicy;
-import be.iminds.aiolos.ds.component.ReferenceDescription;
-import be.iminds.aiolos.ds.component.ReferenceDescription.Cardinality;
-import be.iminds.aiolos.ds.component.ReferenceDescription.Policy;
-import be.iminds.aiolos.ds.component.ReferenceDescription.PolicyOption;
-import be.iminds.aiolos.ds.component.ServiceDescription;
+import be.iminds.aiolos.ds.description.ComponentDescription;
+import be.iminds.aiolos.ds.description.ReferenceDescription;
+import be.iminds.aiolos.ds.description.ServiceDescription;
+import be.iminds.aiolos.ds.description.ComponentDescription.ConfigurationPolicy;
+import be.iminds.aiolos.ds.description.ReferenceDescription.Cardinality;
+import be.iminds.aiolos.ds.description.ReferenceDescription.Policy;
+import be.iminds.aiolos.ds.description.ReferenceDescription.PolicyOption;
 
 public class ComponentDescriptionParser {
 

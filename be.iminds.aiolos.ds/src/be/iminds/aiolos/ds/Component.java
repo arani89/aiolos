@@ -10,9 +10,9 @@ import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentConstants;
 
-import be.iminds.aiolos.ds.component.ComponentDescription;
-import be.iminds.aiolos.ds.component.ReferenceDescription;
-import be.iminds.aiolos.ds.component.ServiceDescription;
+import be.iminds.aiolos.ds.description.ComponentDescription;
+import be.iminds.aiolos.ds.description.ReferenceDescription;
+import be.iminds.aiolos.ds.description.ServiceDescription;
 
 public class Component {
 

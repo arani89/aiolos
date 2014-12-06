@@ -6,8 +6,8 @@ import org.osgi.service.component.ComponentConstants;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-import be.iminds.aiolos.ds.component.ReferenceDescription;
-import be.iminds.aiolos.ds.component.ReferenceDescription.Cardinality;
+import be.iminds.aiolos.ds.description.ReferenceDescription;
+import be.iminds.aiolos.ds.description.ReferenceDescription.Cardinality;
 
 public class Reference {
 

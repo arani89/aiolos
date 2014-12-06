@@ -14,4 +14,4 @@ Bundle-DocURL: http://aiolos.intec.ugent.be
 Private-Package: \
 	be.iminds.aiolos.ds,\
 	be.iminds.aiolos.ds.util,\
-	be.iminds.aiolos.ds.component
+	be.iminds.aiolos.ds.description

@@ -8,7 +8,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.SynchronousBundleListener;
 
-import be.iminds.aiolos.ds.component.ComponentDescription;
+import be.iminds.aiolos.ds.description.ComponentDescription;
 import be.iminds.aiolos.ds.util.ComponentDescriptionParser;
 
 public class Activator implements BundleActivator {
