@@ -23,10 +23,16 @@ import be.iminds.aiolos.ds.component.ServiceDescription;
 
 public class ComponentDescriptionParser {
 
-	public List<ComponentDescription> loadComponentDescriptors(Bundle bundle) throws Exception {
+	public static List<ComponentDescription> loadComponentDescriptors(Bundle bundle) throws Exception {
 		List<ComponentDescription> descriptions = new ArrayList<ComponentDescription>();
 		
+		System.out.println("Looking for descriptors of bundle "+bundle.getSymbolicName());
 		String descriptorLocations = bundle.getHeaders().get("Service-Component");
+		if(descriptorLocations==null){
+			System.out.println("No descriptors found");
+			return descriptions;
+		}
+		
 		StringTokenizer st = new StringTokenizer(descriptorLocations, ",");
 		while(st.hasMoreTokens()){
 			String descriptorLocation = st.nextToken().trim();
@@ -53,10 +59,13 @@ public class ComponentDescriptionParser {
 					ComponentDescription description = parse(url.openStream());
 					descriptions.add(description);
 				} catch(Exception e){
+					e.printStackTrace();
 					System.err.println("Failed to parse component description "+url);
 				}
 			}
 		}
+		
+		System.out.println(descriptions.size()+" descriptors found");
 		
 		return descriptions;
 	}
