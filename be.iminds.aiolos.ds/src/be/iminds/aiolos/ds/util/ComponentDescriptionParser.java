@@ -3,24 +3,65 @@ package be.iminds.aiolos.ds.util;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.StringTokenizer;
 
 import org.kxml2.io.KXmlParser;
+import org.osgi.framework.Bundle;
 import org.xmlpull.v1.XmlPullParser;
 
 import be.iminds.aiolos.ds.component.ComponentDescription;
 import be.iminds.aiolos.ds.component.ComponentDescription.ConfigurationPolicy;
 import be.iminds.aiolos.ds.component.ReferenceDescription;
+import be.iminds.aiolos.ds.component.ReferenceDescription.Cardinality;
 import be.iminds.aiolos.ds.component.ReferenceDescription.Policy;
 import be.iminds.aiolos.ds.component.ReferenceDescription.PolicyOption;
 import be.iminds.aiolos.ds.component.ServiceDescription;
-import be.iminds.aiolos.ds.component.ReferenceDescription.Cardinality;
 
 public class ComponentDescriptionParser {
 
-	public static ComponentDescription parse(InputStream stream) throws Exception {
+	public List<ComponentDescription> loadComponentDescriptors(Bundle bundle) throws Exception {
+		List<ComponentDescription> descriptions = new ArrayList<ComponentDescription>();
+		
+		String descriptorLocations = bundle.getHeaders().get("Service-Component");
+		StringTokenizer st = new StringTokenizer(descriptorLocations, ",");
+		while(st.hasMoreTokens()){
+			String descriptorLocation = st.nextToken().trim();
+			
+			int separator = descriptorLocation.lastIndexOf("/");
+			String path;
+			String pattern;
+			if(separator>0){
+				path = descriptorLocation.substring(0, separator);
+				pattern = descriptorLocation.substring(separator+1);
+			} else {
+				path = "/";
+				pattern = descriptorLocation;
+			}
+			
+			Enumeration<URL> urls = bundle.findEntries(path, pattern, false);
+			if(urls == null){
+				throw new Exception("No valid Service-Component url found");
+			}
+			
+			while(urls.hasMoreElements()){
+				URL url = urls.nextElement();
+				try {
+					ComponentDescription description = parse(url.openStream());
+					descriptions.add(description);
+				} catch(Exception e){
+					System.err.println("Failed to parse component description "+url);
+				}
+			}
+		}
+		
+		return descriptions;
+	}
+	
+	private static ComponentDescription parse(InputStream stream) throws Exception {
 		ComponentDescription component = null;
 		
 		BufferedReader in = new BufferedReader(new InputStreamReader(stream));
