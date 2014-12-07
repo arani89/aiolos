@@ -98,6 +98,10 @@ public class ComponentDescriptionParser {
 			parser.next();
 		}
 		
+		// if no services, set immediate = true
+		if(component.getServices().size()==0)
+			component.setImmediate(true);
+		
 		return component;
 	}
 	

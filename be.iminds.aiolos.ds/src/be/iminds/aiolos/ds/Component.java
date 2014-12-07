@@ -1,18 +1,23 @@
 package be.iminds.aiolos.ds;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentConstants;
+import org.osgi.service.component.ComponentContext;
 
 import be.iminds.aiolos.ds.description.ComponentDescription;
 import be.iminds.aiolos.ds.description.ReferenceDescription;
 import be.iminds.aiolos.ds.description.ServiceDescription;
+import be.iminds.aiolos.ds.util.ComponentMethodLookup;
 
 public class Component {
 
@@ -91,27 +96,37 @@ public class Component {
 		}
 		this.state = State.ENABLED;
 		
-		System.out.println("ENABLED "+description.getName());
-		
 		// refresh to check whether it is satisfied
 		refresh();
 	}
 	
-	public synchronized void activate(){
+	public synchronized void activate() {
 		if(this.state != State.SATISFIED)
 			return;
 		
-		System.out.println("ACTIVATE "+description.getName());
-		
-		// TODO initialize class
+		// initialize class
 		if(implementation==null){
-			
+			try {
+				Class clazz = bundle.loadClass(description.getImplementationClass());
+				implementation = clazz.newInstance();
+			} catch(Exception e){
+				System.err.println("Failed to instantiate component "+description.getName());
+				e.printStackTrace();
+				// TODO deactivate/dispose?
+				return;
+			}
+		}
+
+		// call activate
+		Method activate = ComponentMethodLookup.getActivate(implementation, description);
+		if(activate!=null){
+			callComponentEventMethod(activate);
 		}
 		
-		// TODO call all binds
-		
-		// TODO call activate
-		
+		// call all binds
+		for(Reference r : references){
+			r.bind();
+		}
 		
 		this.state = State.ACTIVE;
 	}
@@ -120,7 +135,11 @@ public class Component {
 		if(this.state!= State.ACTIVE){
 			unregisterServices();
 			
-			// TODO call deactivate
+			// call deactivate
+			Method deactivate = ComponentMethodLookup.getDeactivate(implementation, description);
+			if(deactivate!=null){
+				callComponentEventMethod(deactivate);
+			}
 		}
 		
 	}
@@ -157,8 +176,11 @@ public class Component {
 		registerServices();
 		
 		this.state = State.SATISFIED;
-		System.out.println("SATISFIED "+description.getName());
-		
+
+		// activate if immediate
+		if(description.isImmediate()){
+			activate();
+		}
 	}
 	
 	private void registerServices(){
@@ -202,10 +224,30 @@ public class Component {
 				ServiceRegistration registration, Object service) {
 			usageCount--;
 			
-			// TODO do we unitialize again when no longer used?
+			// TODO do we uninitialize again when no longer used?
 		}
 		
 	}
 	
-	
+	private void callComponentEventMethod(Method m){
+		Object[] params = new Object[m.getParameterTypes().length];
+		for(int i=0;i<m.getParameterTypes().length;i++){
+			Class paramClass = m.getParameterTypes()[i];
+			if(paramClass.equals(ComponentContext.class)){
+				System.err.println("Our implementation does not support ComponentContext");
+				params[i] = null;
+			} else if(paramClass.equals(BundleContext.class)){
+				params[i] = bundle.getBundleContext();
+			} else if(paramClass.equals(Map.class)){
+				params[i] = description.getProperties();
+				// TODO check configuration admin?
+			}
+		}
+		try {
+			m.invoke(implementation, params);
+		} catch (Exception e) {
+			System.err.println("Failed to call bind method "+m.getName());
+			e.printStackTrace();
+		}
+	}
 }
