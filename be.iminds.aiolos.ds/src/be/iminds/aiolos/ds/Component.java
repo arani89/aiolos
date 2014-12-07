@@ -97,7 +97,36 @@ public class Component {
 		this.state = State.ENABLED;
 		
 		// refresh to check whether it is satisfied
-		refresh();
+		satisfy();
+	}
+	
+	public synchronized void satisfy(){
+		// check if everything is satisfied, and if so, go to the SATISFIED state
+		// this is triggered everytime a reference is found
+		if(this.state != State.ENABLED){
+			return;
+		}
+		
+		boolean satisfied = true;
+		for(Reference r : references){
+			if(!r.isSatisfied()){
+				satisfied = false;
+			}
+		}
+		
+		if(!satisfied) {
+			return;
+		}
+
+		// register service
+		registerServices();
+		
+		this.state = State.SATISFIED;
+
+		// activate if immediate
+		if(description.isImmediate()){
+			activate();
+		}
 	}
 	
 	public synchronized void activate() {
@@ -152,35 +181,6 @@ public class Component {
 	public synchronized void dispose(){
 		
 		deactivate(ComponentConstants.DEACTIVATION_REASON_DISPOSED);
-	}
-	
-	public synchronized void refresh(){
-		// check if everything is satisfied, and if so, go to the SATISFIED state
-		// this is triggered everytime a reference is found
-		if(this.state != State.ENABLED){
-			return;
-		}
-		
-		boolean satisfied = true;
-		for(Reference r : references){
-			if(!r.isSatisfied()){
-				satisfied = false;
-			}
-		}
-		
-		if(!satisfied) {
-			return;
-		}
-
-		// register service
-		registerServices();
-		
-		this.state = State.SATISFIED;
-
-		// activate if immediate
-		if(description.isImmediate()){
-			activate();
-		}
 	}
 	
 	private void registerServices(){

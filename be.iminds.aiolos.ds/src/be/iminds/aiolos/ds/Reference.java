@@ -1,6 +1,5 @@
 package be.iminds.aiolos.ds;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -139,7 +138,7 @@ public class Reference {
 			// refresh component if cardinality 1..n or 1..1 
 			if(description.getCardinality()==Cardinality.AT_LEAST_ONE
 					|| description.getCardinality()==Cardinality.MANDATORY){
-				component.refresh();
+				component.satisfy();
 			}
 			
 			return service;
