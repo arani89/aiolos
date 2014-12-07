@@ -12,6 +12,7 @@ import org.osgi.service.component.ComponentConstants;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
+import be.iminds.aiolos.ds.Component.State;
 import be.iminds.aiolos.ds.description.ReferenceDescription;
 import be.iminds.aiolos.ds.description.ReferenceDescription.Cardinality;
 import be.iminds.aiolos.ds.description.ReferenceDescription.Policy;
@@ -23,14 +24,14 @@ public class Reference {
 	private final ReferenceDescription description;
 	
 	private final ServiceTracker serviceTracker;
-	private final Map<ServiceReference, Object> bindOnActivate;
+	private final Map<ServiceReference, Object> bound;
 	
 	
 	public Reference(Component component, 
 			ReferenceDescription description) throws Exception{
 		this.component = component;
 		this.description = description;
-		this.bindOnActivate = Collections.synchronizedMap(new HashMap<ServiceReference, Object>());
+		this.bound = Collections.synchronizedMap(new HashMap<ServiceReference, Object>());
 		
 		String filter = "(objectClass="+description.getInterface()+")";
 		if(description.getTarget()!=null){
@@ -55,8 +56,8 @@ public class Reference {
 	
 	public void bind(){
 		// bind all on activate
-		synchronized(bindOnActivate){
-			Iterator<Entry<ServiceReference, Object>> it = bindOnActivate.entrySet().iterator();
+		synchronized(bound){
+			Iterator<Entry<ServiceReference, Object>> it = bound.entrySet().iterator();
 			while(it.hasNext()){
 				Entry<ServiceReference, Object> entry = it.next();
 				bind(entry.getKey(), entry.getValue());
@@ -78,7 +79,7 @@ public class Reference {
 		}
 	}
 
-	public void modified(ServiceReference ref, Object service){
+	public void updated(ServiceReference ref, Object service){
 		synchronized(component){
 			Object implementation = component.getImplementation();
 			if(implementation==null){
@@ -111,7 +112,7 @@ public class Reference {
 				|| description.getCardinality()==Cardinality.MULTIPLE){
 			return true;
 		} else {
-			return serviceTracker.getTrackingCount() > 0;
+			return bound.size() > 0;
 		}
 	}
 
@@ -120,18 +121,20 @@ public class Reference {
 
 		@Override
 		public Object addingService(ServiceReference reference) {
-			Object service = null;
+			Object service = component.getBundle().getBundleContext().getService(reference);
+			
 			// check if it should be bound
 			// = YES if 0..n or 1..n or no reference available atm?
 			if(description.getCardinality()==Cardinality.MULTIPLE
 					|| description.getCardinality()==Cardinality.AT_LEAST_ONE
-					|| bindOnActivate.size()==0){
-				service = component.getBundle().getBundleContext().getService(reference);
-				bindOnActivate.put(reference, service);
+					|| bound.size()==0){
+				bound.put(reference, service);
 				
 				//call bind if dynamic
 				if(description.getPolicy()==Policy.DYNAMIC){
 					bind(reference, service);
+				} else {
+					// TODO policy-option greedy should reactivate component
 				}
 			} 
 	
@@ -145,34 +148,58 @@ public class Reference {
 		}
 
 		@Override
-		public void modifiedService(ServiceReference reference, Object service) {
-			// TODO call updated?
+		public void modifiedService(ServiceReference reference, Object s) {
+			Object service = bound.get(reference);
+			if(service!=null){
+				updated(reference, service);
+			}
 		}
 
 		@Override
-		public void removedService(ServiceReference reference, Object service) {
-			Object o = bindOnActivate.remove(reference);
-			if( o != null){
-				// TODO replace with other reference in bindOnActivate 
+		public void removedService(ServiceReference reference, Object s) {
+			// remove from activate
+			Object service = bound.remove(reference);
+			if( service != null){
+			
+				// call unbind if dynamic
+				if(description.getPolicy()==Policy.DYNAMIC){
+					unbind(reference, service);
+				}
+				
+				// replace with other reference in bindOnActivate 
 				// if cardinality 0..1 and 1..1?
+				if(description.getCardinality()==Cardinality.OPTIONAL
+						|| description.getCardinality()==Cardinality.MANDATORY){
+					ServiceReference[] others = serviceTracker.getServiceReferences();
+					if(others!=null){
+						ServiceReference newRef = others[0];
+						Object newService = serviceTracker.getService(newRef);
+						bound.put(newRef, newService);
+						
+						if(description.getCardinality()==Cardinality.OPTIONAL){
+							// if optional bind the replacement
+							bind(newRef, newService);
+						}
+					}
+				}
 			}
 			
-			// call unbind if dynamic
-			if(description.getPolicy()==Policy.DYNAMIC){
-				unbind(reference, service);
-			}
+			// unget service
+			component.getBundle().getBundleContext().ungetService(reference); 
 			
-			// TODO what if static? disactivate component?!
-			
-			// if last service and mandatory then trigger unsatisfy
-			if(serviceTracker.getTrackingCount()==0
-					&& (description.getCardinality()==Cardinality.AT_LEAST_ONE
-						|| description.getCardinality()==Cardinality.MANDATORY)){
-				component.deactivate(ComponentConstants.DEACTIVATION_REASON_REFERENCE);
+			if(component.getState()==State.ACTIVE){
+				// deactivate if static policy
+				if(description.getPolicy()==Policy.STATIC){
+					component.deactivate(ComponentConstants.DEACTIVATION_REASON_REFERENCE);
+				}
+				// ... or if last service and mandatory also trigger deactivate
+				else if(serviceTracker.getTrackingCount()==0
+						&& (description.getCardinality()==Cardinality.AT_LEAST_ONE
+							|| description.getCardinality()==Cardinality.MANDATORY)){
+					component.deactivate(ComponentConstants.DEACTIVATION_REASON_REFERENCE);
+				}
 			}
-
 		}
-		
 	}
 	
 	private Map<String, Object> getServiceProperties(ServiceReference ref){

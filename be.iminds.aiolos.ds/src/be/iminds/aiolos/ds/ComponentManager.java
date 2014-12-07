@@ -14,8 +14,6 @@ public class ComponentManager {
 	private List<Component> components = new ArrayList<Component>();
 	
 	public void registerComponent(Bundle bundle, ComponentDescription description){
-		System.out.println("Register component "+description.getName());
-		
 		Component component;
 		try {
 			synchronized(components){

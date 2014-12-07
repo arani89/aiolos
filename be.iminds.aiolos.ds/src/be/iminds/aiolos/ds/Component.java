@@ -63,7 +63,7 @@ public class Component {
 		this.state = State.DISABLED;
 		if(description.isEnabled()){
 			enable();
-		} 
+		}
 	}
 	
 	public long getId(){
@@ -95,6 +95,7 @@ public class Component {
 			r.open();
 		}
 		this.state = State.ENABLED;
+		//System.out.println("Component "+description.getName()+" ENABLED");
 		
 		// refresh to check whether it is satisfied
 		satisfy();
@@ -111,6 +112,7 @@ public class Component {
 		for(Reference r : references){
 			if(!r.isSatisfied()){
 				satisfied = false;
+				//System.out.println("Unsatisfied reference "+description.getName()+"->"+r.getDescription().getInterface());
 			}
 		}
 		
@@ -118,11 +120,12 @@ public class Component {
 			return;
 		}
 
+		this.state = State.SATISFIED;
+		//System.out.println("Component "+description.getName()+" SATISFIED");
+	
 		// register service
 		registerServices();
-		
-		this.state = State.SATISFIED;
-
+			
 		// activate if immediate
 		if(description.isImmediate()){
 			activate();
@@ -158,23 +161,43 @@ public class Component {
 		}
 		
 		this.state = State.ACTIVE;
+		//System.out.println("Component "+description.getName()+" ACTIVE");
+
 	}
 	
 	public synchronized void deactivate(int reason){
 		if(this.state!= State.ACTIVE){
-			unregisterServices();
+			return;
+		}
+		
+		// unregister the services of this component before deactivating
+		unregisterServices(); 
 			
-			// call deactivate
-			Method deactivate = ComponentMethodLookup.getDeactivate(implementation, description);
-			if(deactivate!=null){
-				callComponentEventMethod(deactivate);
-			}
+		// call deactivate
+		Method deactivate = ComponentMethodLookup.getDeactivate(implementation, description);
+		if(deactivate!=null){
+			callComponentEventMethod(deactivate);
+		}
+		
+		// reset implementation object
+		implementation = null;
+
+		//System.out.println("Component "+description.getName()+" DEACTIVATED");
+		
+		// set state to disabled and re-enable if it is due to unsatisfied dependency
+		this.state = State.DISABLED;
+		// close servicetrackers
+		for(Reference r : references){
+			r.close();
+		}
+		if(reason==ComponentConstants.DEACTIVATION_REASON_REFERENCE
+				|| reason==ComponentConstants.DEACTIVATION_REASON_UNSPECIFIED){
+			enable();
 		}
 		
 	}
 	
 	public synchronized void disable(){
-		
 		deactivate(ComponentConstants.DEACTIVATION_REASON_DISABLED);
 	}
 	
@@ -215,7 +238,7 @@ public class Component {
 			if(state == State.SATISFIED){
 				activate();
 			}
-			
+
 			return implementation;
 		}
 
@@ -224,7 +247,9 @@ public class Component {
 				ServiceRegistration registration, Object service) {
 			usageCount--;
 			
-			// TODO do we uninitialize again when no longer used?
+			// deactivate when no longer used
+			if(!description.isImmediate())
+				deactivate(ComponentConstants.DEACTIVATION_REASON_UNSPECIFIED);
 		}
 		
 	}
