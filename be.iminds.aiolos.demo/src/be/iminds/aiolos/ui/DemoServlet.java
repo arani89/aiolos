@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
@@ -303,14 +304,23 @@ public class DemoServlet extends HttpServlet {
 				JSONObject serviceInfo = new JSONObject();
 				String serviceId = p.getServiceId();
 				// make the serviceId cleaner for demo
-				int startIndex = serviceId.lastIndexOf('.');
-				int endIndex = serviceId.indexOf('-');
-				if(startIndex!=-1 && endIndex!=-1){
-					serviceId = serviceId.substring(startIndex+1, endIndex);
-				} else if(startIndex!=-1){
-					serviceId = serviceId.substring(startIndex+1);
+				StringTokenizer st = new StringTokenizer(serviceId, ",");
+				String cleanServiceId = "";
+				while(st.hasMoreTokens()){
+					String service = st.nextToken();
+					int startIndex = service.lastIndexOf('.');
+					int endIndex = service.indexOf('-');
+					if(startIndex!=-1 && endIndex!=-1){
+						cleanServiceId += service.substring(startIndex+1, endIndex);
+					} else if(startIndex!=-1){
+						cleanServiceId += service.substring(startIndex+1);
+					}
+					if(st.hasMoreTokens()){
+						cleanServiceId +=",";
+					}
 				}
-				serviceInfo.put("serviceId", serviceId);
+				
+				serviceInfo.put("serviceId", cleanServiceId);
 				
 				ServiceInfo s = null;
 				for(ServiceInfo si : p.getInstances()){
