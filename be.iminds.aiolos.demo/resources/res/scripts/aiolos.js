@@ -418,6 +418,8 @@ function getNodeIcon(node){
 		return "images/xoom.png";
 	} else if(node.name == "M100"){
 		return "images/vuzix.png";
+	} else if(node.name == "colombus"){
+		return "images/raspberry.png";
 	} else if(node.os == "Android"){
 		return "images/android.png";
 	} else if(node.os == "Linux"){
