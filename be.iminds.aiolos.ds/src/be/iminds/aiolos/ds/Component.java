@@ -2,6 +2,7 @@ package be.iminds.aiolos.ds;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.List;
@@ -149,16 +150,16 @@ public class Component {
 			}
 		}
 
-		// call activate
-		Method activate = ComponentMethodLookup.getActivate(implementation, description);
-		if(activate!=null){
-			callComponentEventMethod(activate);
-		}
-		
 		// call all binds
 		for(Reference r : references){
 			r.bind();
 		}
+		
+		// call activate
+		Method activate = ComponentMethodLookup.getActivate(implementation, description);
+		if(activate!=null){
+			callComponentEventMethod(activate);
+		} 
 		
 		this.state = State.ACTIVE;
 		//System.out.println("Component "+description.getName()+" ACTIVE");
@@ -271,7 +272,7 @@ public class Component {
 		try {
 			m.invoke(implementation, params);
 		} catch (Exception e) {
-			System.err.println("Failed to call bind method "+m.getName());
+			System.err.println("Failed to call method "+m.getName());
 			e.printStackTrace();
 		}
 	}
