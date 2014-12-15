@@ -76,13 +76,17 @@ public class ComponentMethodLookup {
 	private static Method getMethod(Object object, String methodName, Class[] acceptableTypes){
 		// TODO should be done according to 112.9.4
 		Method result = null;
-		for(Method method : object.getClass().getMethods()){
+		for(Method method : object.getClass().getDeclaredMethods()){
 			if(method.getName().equals(methodName)){
 				if(checkMethod(method, acceptableTypes)){
 					result = method;
 					break;
 				}
 			}
+		}
+		// set accessible
+		if(result!=null){
+			result.setAccessible(true);
 		}
 		return result;
 	}
@@ -96,8 +100,9 @@ public class ComponentMethodLookup {
 					acceptableType = true;
 				}
 			}
-			if(!acceptableType)
+			if(!acceptableType){
 				ok  = false;
+			}
 		}
 		return ok;
 	}
