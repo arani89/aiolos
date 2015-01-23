@@ -1,0 +1,13 @@
+-buildpath: osgi.core;version=5.0.0,\
+	osgi.enterprise;version=5.0.0.201203141834
+	
+Bundle-Activator: be.iminds.aiolos.configurer.Activator
+Bundle-Name: AIOLOS Configurer
+Bundle-Version: 0.1.0
+-noee: true
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
+Bundle-DocURL: http://aiolos.intec.ugent.be
+-includeresource: ../LICENSE.txt
+Private-Package: be.iminds.aiolos.configurer
