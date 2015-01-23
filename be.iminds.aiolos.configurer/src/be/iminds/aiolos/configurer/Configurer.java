@@ -57,13 +57,13 @@ public class Configurer implements  BundleTrackerCustomizer<Bundle> {
 			if(pid[1]==null){
 				// regular pid
 				
-				Configuration conf = cm.getConfiguration(pid[0]);
+				Configuration conf = cm.getConfiguration(pid[0], null);
 				conf.update(toDictionary(props));
 				
 				pids.put(url.toString(), pid[0]);
 			} else {
 				// factory pid
-				Configuration conf = cm.createFactoryConfiguration(pid[1]);
+				Configuration conf = cm.createFactoryConfiguration(pid[1], null);
 				conf.update(toDictionary(props));
 				String generatedPid = conf.getPid();
 				pids.put(url.toString(), generatedPid);
@@ -79,7 +79,7 @@ public class Configurer implements  BundleTrackerCustomizer<Bundle> {
 		String pid = pids.remove(url.toString());
 		if(pid!=null){
 			try {
-				Configuration conf = cm.getConfiguration(pid);
+				Configuration conf = cm.getConfiguration(pid, null);
 				conf.delete();
 			} catch(IOException e){
 				System.err.println("Error remove configuration "+url);
