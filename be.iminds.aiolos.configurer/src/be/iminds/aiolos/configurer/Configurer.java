@@ -33,7 +33,7 @@ public class Configurer implements  BundleTrackerCustomizer<Bundle> {
 	@Override
 	public Bundle addingBundle(Bundle bundle, BundleEvent event) {
 		for(URL url : getConfigurationURLs(bundle, location)){
-			configure(url);
+			configure(bundle, url);
 		}
 		return bundle;
 	}
@@ -48,10 +48,11 @@ public class Configurer implements  BundleTrackerCustomizer<Bundle> {
 		}
 	}
 	
-	public void configure(URL url){
+	public void configure(Bundle b, URL url){
 		Properties props = new Properties();
 		try {
 			props.load(url.openStream());
+			props.put("be.iminds.aiolos.configurer.bundle.id", b.getBundleId());
 			
 			String[] pid = parsePid(url);
 			if(pid[1]==null){
