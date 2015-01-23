@@ -6,11 +6,15 @@ aiolos.version=latest
 -resolve.effective: active
 -runbundles: \
 	osgi.enterprise;version='[5.0.0,5.1.0)',\
+	org.eclipse.concierge.service.startlevel,\
+	org.eclipse.concierge.service.packageadmin,\
 	ch.qos.logback.classic,\
 	ch.qos.logback.core,\
 	slf4j.api;version=1.7.2,\
 	org.slf4j.osgi-over-slf4j,\
-	org.apache.felix.http.jetty,\
+	org.apache.felix.http.api;version=2.3.2,\
+	org.apache.felix.http.jetty;version=2.3.2,\
+	org.apache.felix.http.servlet-api;version=1.0.1,\
 	org.apache.felix.webconsole,\
 	org.apache.felix.webconsole.plugins.gogo,\
 	org.apache.felix.configadmin;version=1.6.0,\
@@ -35,7 +39,11 @@ aiolos.version=latest
 
 -runstorage: generated/vm
 
--runsystempackages: sun.awt.image,sun.misc,sun.reflect
+-runsystempackages: sun.awt.image,sun.misc,sun.reflect,\
+	org.xml.sax,\
+	org.xml.sax.helpers,\
+	javax.xml.parsers,\
+	javax.naming
 
 -runproperties: org.apache.felix.log.storeDebug=true,\
 	org.osgi.service.http.port=8081,\
