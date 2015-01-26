@@ -40,8 +40,10 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import be.iminds.aiolos.rsa.command.RSACommands;
+import be.iminds.aiolos.rsa.serialization.kryo.KryoFactory;
 
 /**
  * The {@link BundleActivator} for the ProxyManager bundle. 
@@ -52,6 +54,8 @@ public class Activator implements BundleActivator {
 
 	private ServiceReference<RemoteServiceAdmin> ref = null;
 	private ServiceTracker<LogService, LogService> logService;
+	
+	private ServiceTracker kryoSerializerTracker;
 	
 	public static Logger logger;
 	
@@ -69,7 +73,7 @@ public class Activator implements BundleActivator {
 	}
 	
 	@Override
-	public void start(BundleContext context) throws Exception {
+	public void start(final BundleContext context) throws Exception {
 		logService = new ServiceTracker<LogService,LogService>(context, LogService.class, null);
 		logService.open();
 		logger = new Logger();
@@ -97,12 +101,39 @@ public class Activator implements BundleActivator {
 		} catch(Throwable t){
 			// ignore exception, in that case no GoGo shell available
 		}
+		
+		// Track kryo serializer services
+		// This is very dirty... should be done more nicely ...
+		kryoSerializerTracker = new ServiceTracker(context, context.createFilter("(objectClass=com.esotericsoftware.kryo.Serializer)"), new ServiceTrackerCustomizer() {
+
+			@Override
+			public Object addingService(ServiceReference reference) {
+				Object serializer = context.getService(reference);
+				String clazz = (String)reference.getProperty("kryo.serializer.class");
+				KryoFactory.addSerializer(clazz, serializer);
+				return serializer;
+			}
+
+			@Override
+			public void modifiedService(ServiceReference reference,
+					Object serializer) {}
+
+			@Override
+			public void removedService(ServiceReference reference,
+					Object serializer) {
+				String clazz = (String)reference.getProperty("kryo.serializer.class");
+				KryoFactory.removeSerializer(clazz, serializer);
+			}
+		});
+		kryoSerializerTracker.open();
 	}
 
 	@Override
 	public void stop(BundleContext context) throws Exception {
 		rsa.deactivate();
 		logService.close();
+		
+		kryoSerializerTracker.close();
 	}
 
 }

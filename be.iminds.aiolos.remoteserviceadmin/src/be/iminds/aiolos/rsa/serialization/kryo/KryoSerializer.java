@@ -32,7 +32,6 @@ package be.iminds.aiolos.rsa.serialization.kryo;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
 
 import be.iminds.aiolos.rsa.serialization.api.SerializationException;
 import be.iminds.aiolos.rsa.serialization.api.Serializer;
@@ -40,39 +39,22 @@ import be.iminds.aiolos.rsa.serialization.api.Serializer;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.kryo.serializers.JavaSerializer;
-import com.esotericsoftware.minlog.Log;
-
-import de.javakaffee.kryoserializers.ArraysAsListSerializer;
-import de.javakaffee.kryoserializers.UnmodifiableCollectionsSerializer;
 
 /**
  * {@link Serializer} using the Kryo library.
  */
 public class KryoSerializer implements Serializer {
 
-	private Kryo kryo = new Kryo();
+	private Kryo kryo;
 	private Output output;
 	private OutputStream out;
 	
 	public KryoSerializer(OutputStream out){
-		// use RSA bundle classloader
 		//com.esotericsoftware.minlog.Log.set(Log.LEVEL_TRACE);
-		
-		// we call reset ourselves after each writeObject
-		kryo.setAutoReset(false);
-		// redirect to RSA bundle classloader
-		kryo.setClassLoader(this.getClass().getClassLoader());
-		
+		this.kryo = KryoFactory.createKryo();
+
 		this.out = out;
 		this.output = new Output(out);
-		// Sometimes problems with serializing exceptions in Kryo (e.g. Throwable discrepance between android/jdk)
-		kryo.addDefaultSerializer(Throwable.class, JavaSerializer.class);
-		// required to correctly handle unmodifiable collections (i.e. used in EndpointDescription)
-		UnmodifiableCollectionsSerializer.registerSerializers( kryo );
-		// required to correctly handle Arrays$ArrayList class (i.e. used in EndpointDescription)
-		kryo.register( Arrays.asList( "" ).getClass(), new ArraysAsListSerializer() );
-
 	}
 	
 	@Override

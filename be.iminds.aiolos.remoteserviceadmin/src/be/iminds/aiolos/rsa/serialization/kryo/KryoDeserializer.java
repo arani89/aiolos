@@ -32,48 +32,26 @@ package be.iminds.aiolos.rsa.serialization.kryo;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-
-import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import be.iminds.aiolos.rsa.serialization.api.Deserializer;
 import be.iminds.aiolos.rsa.serialization.api.SerializationException;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.serializers.JavaSerializer;
-import com.esotericsoftware.minlog.Log;
-
-import de.javakaffee.kryoserializers.ArraysAsListSerializer;
-import de.javakaffee.kryoserializers.UnmodifiableCollectionsSerializer;
 
 /**
  * {@link Deserializer} using the Kryo library.
  */
 public class KryoDeserializer implements Deserializer {
 
-	private Kryo kryo = new Kryo();
+	private Kryo kryo;
 	private Input input;
 	
 	public KryoDeserializer(InputStream in){
-		// use RSA bundle classloader
 		//com.esotericsoftware.minlog.Log.set(Log.LEVEL_TRACE);
-		
-		// we call reset ourselves after each readObject
-		kryo.setAutoReset(false);
-		// redirect to RSA bundle classloader
-		kryo.setClassLoader(this.getClass().getClassLoader());
+		this.kryo = KryoFactory.createKryo();
 		
 		this.input = new Input(in);
-		// Sometimes problems with serializing exceptions in Kryo (e.g. Throwable discrepance between android/jdk)
-		kryo.addDefaultSerializer(Throwable.class, JavaSerializer.class);
-		// required to instantiate classes without no-arg constructor
-		kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
-		// required to correctly handle unmodifiable collections (i.e. used in EndpointDescription)
-		UnmodifiableCollectionsSerializer.registerSerializers( kryo );
-		// required to correctly handle Arrays$ArrayList class (i.e. used in EndpointDescription)
-		kryo.register( Arrays.asList( "" ).getClass(), new ArraysAsListSerializer() );
-		
 	}
 	
 	@Override
