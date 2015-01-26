@@ -101,7 +101,8 @@ public class ServiceProxy implements InvocationHandler {
 	protected static List<ServiceProxyListener> listeners = new ArrayList<ServiceProxyListener>();
 	
 	public ServiceProxy(BundleContext context, String serviceInterface, 
-			String serviceId, String componentId, String version, ServiceReference<?> ref){
+			String serviceId, String componentId, String version, ServiceReference<?> ref,
+			boolean export){
 		this.serviceInterfaces = new ArrayList<String>();
 		StringTokenizer t = new StringTokenizer(serviceInterface,",");
 		while(t.hasMoreTokens()){
@@ -112,6 +113,8 @@ public class ServiceProxy implements InvocationHandler {
 		this.context = context;
 		this.reference = ref;
 		this.serviceId = serviceId;
+		
+		this.export = export;
 		// default policy?
 		this.policy = new LocalPolicy(context.getProperty("org.osgi.framework.uuid"));
 	}

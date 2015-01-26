@@ -84,6 +84,8 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	public final static String CALLBACK = "aiolos.callback";
 	// Extra service property to select a number of interfaces that should be treated as one (e.g. interface hierarchy)
 	public final static String COMBINE = "aiolos.combine";
+	// Extra service property to put on false when you don't want a service to be exported
+	public final static String EXPORT = "aiolos.export";
 	
 	private final BundleContext context;
 
@@ -184,7 +186,14 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 					// create proxy or add a reference to extra instance
 					if(proxy==null){
 						// add new proxy
-						proxy = new ServiceProxy(context, i, serviceId, componentId, version, serviceReference);
+						boolean export = true;
+						String exportString = (String) serviceReference.getProperty(ProxyManagerImpl.EXPORT);
+						if(exportString!=null){
+							if(exportString.equals("false")){
+								export = false;
+							}
+						}
+						proxy = new ServiceProxy(context, i, serviceId, componentId, version, serviceReference, export);
 						p.put(serviceId, proxy);
 					}
 					try {
