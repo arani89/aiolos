@@ -311,6 +311,7 @@ public class ServiceProxy implements InvocationHandler {
 						properties.put(RemoteConstants.SERVICE_EXPORTED_INTERFACES, serviceInterfaces.toArray(new String[serviceInterfaces.size()]));
 						properties.put(ProxyManagerImpl.COMPONENT_ID, componentId);
 						properties.put(ProxyManagerImpl.SERVICE_ID, serviceId);
+						properties.put(ProxyManagerImpl.FRAMEWORK_UUID, context.getProperty(Constants.FRAMEWORK_UUID));
 						Collection<ExportRegistration> exports = rsa.exportService(proxyRegistration.getReference(), properties);
 						synchronized(exportRegistrations){
 							for(ExportRegistration export : exports){

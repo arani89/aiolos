@@ -78,6 +78,8 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	public final static String VERSION = "aiolos.component.version";
 	// Service property identifying the service interface - by default the interface name, but can be differentiated further with the instance-id
 	public final static String SERVICE_ID = "aiolos.service.id";
+	// Service property that is set on exported services, identifying the framework uuid that exported the service
+	public final static String FRAMEWORK_UUID = "aiolos.framework.uuid";
 	// Extra service property to be set to be unique across multiple instances of the same service interface
 	public final static String INSTANCE_ID = "aiolos.instance.id";
 	// Extra service property to be set callback interfaces that should be uniquely proxied
