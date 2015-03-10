@@ -615,13 +615,13 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 				bundle.getSymbolicName());
 		eventProperties.put("bundle.version", bundle.getVersion()); 
 		// Bundle signers
-		List<String> signersList = new ArrayList<String>();
-		Map<X509Certificate, List<X509Certificate>> signersMap = bundle.getSignerCertificates(Bundle.SIGNERS_ALL);
-		for (Iterator<X509Certificate> i = signersMap.keySet().iterator(); i.hasNext();)
-			signersList.add(i.next().toString());
-		String[] signers = (String[]) signersList.toArray(new String[signersList.size()]);
-		if (signers != null && signers.length > 0)
-			eventProperties.put("bundle.signer", signers); 
+//		List<String> signersList = new ArrayList<String>();
+//		Map<X509Certificate, List<X509Certificate>> signersMap = bundle.getSignerCertificates(Bundle.SIGNERS_ALL);
+//		for (Iterator<X509Certificate> i = signersMap.keySet().iterator(); i.hasNext();)
+//			signersList.add(i.next().toString());
+//		String[] signers = (String[]) signersList.toArray(new String[signersList.size()]);
+//		if (signers != null && signers.length > 0)
+//			eventProperties.put("bundle.signer", signers); 
 		// Exception
 		Throwable t = event.getException();
 		if (t != null)
