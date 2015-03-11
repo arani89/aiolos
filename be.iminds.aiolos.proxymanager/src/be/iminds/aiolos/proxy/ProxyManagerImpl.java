@@ -88,7 +88,7 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	public final static String UNIQUE = "aiolos.unique";
 	// Extra service property to select a number of interfaces that should be treated as one (e.g. interface hierarchy)
 	public final static String COMBINE = "aiolos.combine";
-	// Extra service property to put on false when you don't want a service to be exported
+	// Extra service property to select a subset of interfaces to export, or put to false for no exports
 	public final static String EXPORT = "aiolos.export";
 	
 	private final BundleContext context;
@@ -193,12 +193,21 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 					// create proxy or add a reference to extra instance
 					if(proxy==null){
 						// add new proxy
-						boolean export = true;
-						String exportString = (String) serviceReference.getProperty(ProxyManagerImpl.EXPORT);
-						if(exportString!=null){
-							if(exportString.equals("false")){
-								export = false;
+						boolean export = false;
+						Object exports = serviceReference.getProperty(ProxyManagerImpl.EXPORT);
+						if(exports instanceof String[]){
+							for(String e : (String[]) exports){
+								if(e.equals(i)){
+									export = true;
+								}
 							}
+						} else if(exports instanceof String){
+							String e = (String) exports;
+							if(e.equals(i) || e.equals("*")){
+								export = true;
+							}
+						} else {
+							export = true; // default export
 						}
 						proxy = new ServiceProxy(context, i, serviceId, componentId, version, serviceReference, export);
 						p.put(serviceId, proxy);
