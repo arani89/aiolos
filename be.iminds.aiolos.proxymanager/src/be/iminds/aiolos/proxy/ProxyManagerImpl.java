@@ -84,6 +84,8 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	public final static String INSTANCE_ID = "aiolos.instance.id";
 	// Extra service property to be set callback interfaces that should be uniquely proxied
 	public final static String CALLBACK = "aiolos.callback";
+	// Same as callback, but indicates interfaces that should be treated as unique service
+	public final static String UNIQUE = "aiolos.unique";
 	// Extra service property to select a number of interfaces that should be treated as one (e.g. interface hierarchy)
 	public final static String COMBINE = "aiolos.combine";
 	// Extra service property to put on false when you don't want a service to be exported
@@ -98,7 +100,7 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	private final Set<ServiceInfo> services = Collections.synchronizedSet(new HashSet<ServiceInfo>());
 	
 	// Separate map for matching serviceReferences to generated instanceIds for callback services
-	private final Map<ServiceReference, String> callbackInstanceIds = Collections.synchronizedMap(new HashMap<ServiceReference, String>());
+	private final Map<ServiceReference, String> uniqueInstanceIds = Collections.synchronizedMap(new HashMap<ServiceReference, String>());
 	
 	public ProxyManagerImpl(BundleContext context){
 		this.context = context;
@@ -149,24 +151,27 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 			// create a serviceproxy for each interface
 			for(String i : interfaces){
 				String iid = instanceId;
-				// check if interface is set as callback if no instanceId set
+				// check if interface is set as unique if no instanceId set
 				if(iid==null){
-					boolean callback = false;
-					Object callbacks = serviceReference.getProperty(CALLBACK);
-					if(callbacks instanceof String[]){
-						for(String c : (String[])callbacks){
-							if(c.equals(i))
-								callback = true;
-						}
-					} else if(callbacks instanceof String){
-						if(callbacks.equals(i))
-							callback = true;
+					boolean unique = false;
+					Object uniques = serviceReference.getProperty(CALLBACK);
+					if(uniques==null){
+						uniques = serviceReference.getProperty(UNIQUE);
 					}
-					if(callback) {
-						iid = callbackInstanceIds.get(serviceReference);
+					if(uniques instanceof String[]){
+						for(String c : (String[])uniques){
+							if(c.equals(i))
+								unique = true;
+						}
+					} else if(uniques instanceof String){
+						if(uniques.equals(i))
+							unique = true;
+					}
+					if(unique) {
+						iid = uniqueInstanceIds.get(serviceReference);
 						if(iid==null){
 							iid = UUID.randomUUID().toString();
-							callbackInstanceIds.put(serviceReference, iid);
+							uniqueInstanceIds.put(serviceReference, iid);
 						}
 					}
 				}
@@ -247,7 +252,7 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 				}
 			}
 			if(event.getType()==ServiceEvent.UNREGISTERING){
-				callbackInstanceIds.remove(serviceReference);
+				uniqueInstanceIds.remove(serviceReference);
 			}
 		}
 	}
@@ -279,7 +284,7 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 				for(String serviceInterface : serviceInterfaces){
 					String instanceId = (String)serviceReference.getProperty(INSTANCE_ID);
 					if(serviceReference.getProperty(CALLBACK)!=null){
-						instanceId = callbackInstanceIds.get(serviceReference);
+						instanceId = uniqueInstanceIds.get(serviceReference);
 					}
 					
 					String serviceId = serviceInterface;
