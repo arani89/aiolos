@@ -121,6 +121,24 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	
 	public ProxyManagerImpl(BundleContext context){
 		this.context = context;
+		
+		// configure default export/proxy behavior
+		Object property = context.getProperty("aiolos.proxy");
+		if(property!=null){
+			proxyFilters = ((String)property).split(",");
+		}
+		property = context.getProperty("aiolos.proxy.ignore");
+		if(property!=null){
+			ignoreProxyFilters = ((String)property).split(",");
+		}
+		property = context.getProperty("aiolos.export");
+		if(property!=null){
+			exportFilters = ((String)property).split(",");
+		}
+		property = context.getProperty("aiolos.export.ignore");
+		if(property!=null){
+			ignoreExportFilters = ((String)property).split(",");
+		}		
 	}
 
 	@Override
