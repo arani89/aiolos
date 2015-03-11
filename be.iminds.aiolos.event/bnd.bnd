@@ -3,8 +3,6 @@
 	osgi.enterprise;version=5.0.0.201203141834,\
 	com.esotericsoftware.kryo
 	
-Bundle-Activator: be.iminds.aiolos.event.Activator
-Bundle-Name: AIOLOS Distributed Events
 Bundle-Version: 0.1.0
 -noee: true
 
@@ -12,9 +10,4 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
 Bundle-DocURL: http://aiolos.intec.ugent.be
 -includeresource: ../LICENSE.txt
-Private-Package: \
-	be.iminds.aiolos.event,\
-	be.iminds.aiolos.event.serializer,\
-	be.iminds.aiolos.event.broker,\
-	be.iminds.aiolos.event.broker.rs
-Export-Package: be.iminds.aiolos.event.broker.api
+-sub: *.bnd

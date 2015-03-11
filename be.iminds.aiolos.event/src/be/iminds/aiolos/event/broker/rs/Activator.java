@@ -1,4 +1,4 @@
-package be.iminds.aiolos.event;
+package be.iminds.aiolos.event.broker.rs;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
