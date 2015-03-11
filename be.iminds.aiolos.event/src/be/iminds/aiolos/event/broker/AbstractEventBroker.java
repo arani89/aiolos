@@ -1,8 +1,10 @@
 package be.iminds.aiolos.event.broker;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -25,9 +27,9 @@ public abstract class AbstractEventBroker implements EventBroker, EventHandler {
 	protected ServiceTracker<EventAdmin,EventAdmin> eventAdminTracker;
 	protected ServiceTracker<EventHandler,EventHandler> eventHandlerTracker;
 	// we have EventHandlers for these topics locally
-	protected List<String> topics = Collections.synchronizedList(new ArrayList<String>()); 
+	protected Map<String, AtomicInteger> topics = Collections.synchronizedMap(new HashMap<String, AtomicInteger>()); 
 	
-	public AbstractEventBroker(BundleContext context){
+	public AbstractEventBroker(final BundleContext context){
 		this.context = context;
 		this.frameworkId = context.getProperty(Constants.FRAMEWORK_UUID);
 		
@@ -37,30 +39,35 @@ public abstract class AbstractEventBroker implements EventBroker, EventHandler {
 			@Override
 			public EventHandler addingService(
 					ServiceReference<EventHandler> reference) {
-				Object t = reference.getProperty(EventConstants.EVENT_TOPIC);
-				if(t instanceof String){
-					topics.add((String)t);
-				} else {
-					for(String s : (String[])t){
-						topics.add(s);
+				EventHandler handler = context.getService(reference);
+				if(handler!=AbstractEventBroker.this){
+					Object t = reference.getProperty(EventConstants.EVENT_TOPIC);
+					if(t instanceof String){
+						addTopic((String)t);
+					} else {
+						for(String s : (String[])t){
+							addTopic(s);
+						}
 					}
 				}
-				return AbstractEventBroker.this.context.getService(reference);
+				return handler;
 			}
 
 			@Override
 			public void modifiedService(ServiceReference<EventHandler> reference,
-					EventHandler service) {}
+					EventHandler handler) {}
 
 			@Override
 			public void removedService(ServiceReference<EventHandler> reference,
-					EventHandler service) {
-				Object t = reference.getProperty(EventConstants.EVENT_TOPIC);
-				if(t instanceof String){
-					topics.remove((String)t);
-				} else {
-					for(String s : (String[])t){
-						topics.remove(s);
+					EventHandler handler) {
+				if(handler!=AbstractEventBroker.this){
+					Object t = reference.getProperty(EventConstants.EVENT_TOPIC);
+					if(t instanceof String){
+						removeTopic((String)t);
+					} else {
+						for(String s : (String[])t){
+							removeTopic(s);
+						}
 					}
 				}
 			}
@@ -77,6 +84,28 @@ public abstract class AbstractEventBroker implements EventBroker, EventHandler {
 	public void stop(){
 		eventAdminTracker.close();
 		eventHandlerTracker.close();
+	}
+	
+	protected void addTopic(String topic){
+		synchronized(topics){
+			AtomicInteger i = topics.get(topic);
+			if(i==null){
+				i = new AtomicInteger(0);
+				topics.put(topic, i);
+			}
+			i.incrementAndGet();
+		}
+	}
+	
+	protected void removeTopic(String topic){
+		synchronized(topics){
+			AtomicInteger i = topics.get(topic);
+			if(i!=null){
+				if(i.decrementAndGet()==0){
+					topics.remove(topic);
+				}
+			}
+		}
 	}
 
 	@Override

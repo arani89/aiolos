@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.util.tracker.ServiceTracker;
@@ -27,6 +28,8 @@ public class RSEventBroker extends AbstractEventBroker {
 	private List<EventBroker> brokers = Collections.synchronizedList(new ArrayList<EventBroker>());
 	
 	private ExecutorService notificationThread = Executors.newSingleThreadExecutor();
+	private Dictionary<String, Object> eventBrokerProperties = new Hashtable<String, Object>();
+	private ServiceRegistration reg;
 	
 	public RSEventBroker(final BundleContext context){
 		super(context);
@@ -55,9 +58,9 @@ public class RSEventBroker extends AbstractEventBroker {
 			}
 		});
 		
-		Dictionary<String, Object> eventBrokerProperties = new Hashtable<String, Object>();
 		eventBrokerProperties.put("service.exported.interfaces",new String[]{EventBroker.class.getName()});
-		context.registerService(EventBroker.class, this, eventBrokerProperties);
+		eventBrokerProperties.put("event.topics", getTopics());
+		reg = context.registerService(EventBroker.class, this, eventBrokerProperties);
 	}
 	
 	public void start(){
@@ -68,6 +71,18 @@ public class RSEventBroker extends AbstractEventBroker {
 	public void stop(){
 		super.stop();
 		eventBrokerTracker.close();
+	}
+	
+	protected void addTopic(String topic){
+		super.addTopic(topic);
+		eventBrokerProperties.put("event.topics", getTopics());
+		reg.setProperties(eventBrokerProperties);
+	}
+	
+	protected void removeTopic(String topic){
+		super.removeTopic(topic);
+		eventBrokerProperties.put("event.topics", getTopics());
+		reg.setProperties(eventBrokerProperties);
 	}
 	
 	@Override
@@ -109,4 +124,15 @@ public class RSEventBroker extends AbstractEventBroker {
 		}
 	}
 
+	private String[] getTopics(){
+		String[] t = null;
+		synchronized(topics){
+			t = new String[topics.size()];
+			int i=0;
+			for(String topic : topics.keySet()){
+				t[i++] = topic;
+			}
+		}
+		return t;
+	}
 }
