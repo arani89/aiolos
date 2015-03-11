@@ -104,6 +104,21 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	// Separate map for matching serviceReferences to generated instanceIds for callback services
 	private final Map<ServiceReference, String> uniqueInstanceIds = Collections.synchronizedMap(new HashMap<ServiceReference, String>());
 	
+	// Filters to decide by default which interfaces should be proxied and exported
+	private String[] exportFilters = new String[]{"*"}; // export all
+	private String[] ignoreExportFilters = new String[]{};
+	private String[] proxyFilters = new String[]{"*"}; // proxy all
+	private String[] ignoreProxyFilters = new String[]{  // except these
+			"org.osgi.service.*",
+			"org.osgi.framework.hooks.*",
+			"org.apache.felix.*",
+			"java.lang.Object",
+			"org.apache.felix.shell.Command",
+			"be.iminds.aiolos.*",
+			"aQute.launcher.*",
+			"java.lang.Runnable",
+			"com.esotericsoftware.kryo.Serializer"};
+	
 	public ProxyManagerImpl(BundleContext context){
 		this.context = context;
 	}
@@ -229,7 +244,12 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 								export = true;
 							}
 						} else {
-							export = true; // default export
+							// check default
+							int ok = longestPrefixMatch(i, exportFilters);
+							int ignore = longestPrefixMatch(i, ignoreExportFilters);
+							if(ok>=ignore){
+								export = true;
+							}
 						}
 						proxy = new ServiceProxy(context, i, serviceId, componentId, version, serviceReference, export);
 						p.put(serviceId, proxy);
@@ -348,22 +368,39 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	
 	protected void filterInterfaces(List<String> interfaces){
 		// remove service interfaces that should not be proxied
-		// TODO make this configurable???
 		Iterator<String> it = interfaces.iterator();
 		while(it.hasNext()){
 			String i = it.next();
-			if((i.startsWith("org.osgi.service")) // don't proxy osgi compendium services such as ManagedService or Metatype service...
-					||(i.startsWith("org.osgi.framework.hooks")) // don't proxy osgi service hooks
-					||(i.startsWith("org.apache.felix")) // don't proxy felix services (scr etc.)
-					||(i.startsWith("java.lang.Object")) // used by Gogo shell commands
-					||(i.startsWith("org.apache.felix.shell.Command")) // used by Felix shell commands
-					||(i.startsWith("be.iminds.aiolos")) // don't  proxy aiolos services
-					||(i.startsWith("aQute.launcher")) // don't  proxy aQute Launcher service
-					||(i.startsWith("java.lang.Runnable")) // TODO proxying Runnable service gives error with test runner? 
-			){
+			
+			// search longest prefix match
+			int ok = longestPrefixMatch(i, proxyFilters);
+			int ignore = longestPrefixMatch(i, ignoreProxyFilters);
+			
+			if(ignore>ok){
 				it.remove();
 			}
 		}
+	}
+	
+	protected int longestPrefixMatch(String i, String[] filters){
+		int longestPrefix = -1;
+		for(String filter : filters){
+			int prefix = -1;
+			if(filter.endsWith("*")){
+				if(i.startsWith(filter.substring(0, filter.length()-1))){
+					prefix = filter.split("\\.").length-1;
+				}
+			} else {
+				if(i.equals(filter)){
+					prefix = filter.split("\\.").length;
+				}
+			}
+		
+			if(prefix > longestPrefix){
+				longestPrefix = prefix;
+			}
+		}
+		return longestPrefix;
 	}
 	
 	protected void combineInterfaces(List<String> interfaces, Object combine){
