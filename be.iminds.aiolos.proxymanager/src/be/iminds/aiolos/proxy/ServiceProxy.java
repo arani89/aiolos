@@ -377,7 +377,7 @@ public class ServiceProxy implements InvocationHandler {
 				serviceProperties.put(key, reference.getProperty(key));
 			}
 		}
-		serviceProperties.put(ProxyManagerImpl.PROXY, true);
+		serviceProperties.put(ProxyManagerImpl.IS_PROXY, true);
 		serviceProperties.put(ProxyManagerImpl.COMPONENT_ID, componentId);
 		serviceProperties.put(ProxyManagerImpl.VERSION, version);
 		serviceProperties.put(ProxyManagerImpl.SERVICE_ID, serviceId);
@@ -405,7 +405,7 @@ public class ServiceProxy implements InvocationHandler {
 					RemoteConstants.SERVICE_IMPORTED,
 					RemoteConstants.SERVICE_IMPORTED_CONFIGS,
 					RemoteConstants.SERVICE_INTENTS,
-					ProxyManagerImpl.PROXY, 
+					ProxyManagerImpl.IS_PROXY, 
 					"component.id"});
 	
 	

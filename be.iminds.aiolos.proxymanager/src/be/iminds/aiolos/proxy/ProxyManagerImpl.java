@@ -71,7 +71,7 @@ import be.iminds.aiolos.proxy.api.ServiceProxyListener;
 public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManager {
 	
 	// Service property that is set when the service reference is from a service proxy
-	public final static String PROXY = "aiolos.proxy";
+	public final static String IS_PROXY = "aiolos.isproxy";
 	// Service property to know the component that hosts the service (also for imported services) - by default the symbolicName
 	public final static String COMPONENT_ID = "aiolos.component.id";
 	// Service property to know the version of the component that hosts the service (also for imported services) - by default the bundle version
@@ -144,7 +144,7 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 		
 		// service is not yet proxied
 		// or service is an imported service (and proxy flag is thus set by remote instance)
-		if((serviceReference.getProperty(PROXY) == null)
+		if((serviceReference.getProperty(IS_PROXY) == null)
 				|| (serviceReference.getProperty("service.imported")!=null)){
 			Map<String, ServiceProxy> p = getProxiesOfComponent(componentId, version);
 			
