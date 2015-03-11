@@ -219,7 +219,7 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 								unique = true;
 						}
 					} else if(uniques instanceof String){
-						if(uniques.equals(i))
+						if(uniques.equals(i) || uniques.equals("*")|| uniques.equals("true"))
 							unique = true;
 					}
 					if(unique) {
