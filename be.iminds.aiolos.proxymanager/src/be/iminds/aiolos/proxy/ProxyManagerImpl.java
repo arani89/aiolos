@@ -106,8 +106,8 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	
 	// Filters to decide by default which interfaces should be proxied and exported
 	private String[] exportFilters = new String[]{"*"}; // export all
-	private String[] ignoreExportFilters = new String[]{};
-	private String[] proxyFilters = new String[]{"*"}; // proxy all
+	private String[] ignoreExportFilters = new String[]{"org.osgi.service.event.EventHandler"}; // don't export EventHandler, use EventBroker to distribute Events
+	private String[] proxyFilters = new String[]{"*","org.osgi.service.event.EventHandler"}; // proxy all and also proxy EventHandler
 	private String[] ignoreProxyFilters = new String[]{  // except these
 			"org.osgi.service.*",
 			"org.osgi.framework.hooks.*",
