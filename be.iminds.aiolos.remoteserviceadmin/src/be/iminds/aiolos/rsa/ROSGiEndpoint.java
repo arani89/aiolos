@@ -31,6 +31,7 @@
 package be.iminds.aiolos.rsa;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -254,13 +255,24 @@ public class ROSGiEndpoint implements ExportReference {
 	
 	private void createMethodList(Object serviceObject, String[] exportedInterfaces){
 		List<String> exportedInterfaceList = Arrays.asList(exportedInterfaces);
-		for(Class<?> iface : serviceObject.getClass().getInterfaces()){
+		for(Class<?> iface : getInterfaces(serviceObject.getClass())){
 			if(exportedInterfaceList.contains(iface.getName())){
 				for(Method m : iface.getMethods()){
 					methodList.put(MethodSignature.getMethodSignature(m), m);
 				}
 			}
 		}
+	}
+	
+	private List<Class> getInterfaces(Class clazz){
+		List<Class> ifaces = new ArrayList<Class>();
+		for(Class<?> iface : clazz.getInterfaces()){
+			ifaces.add(iface);
+		}
+		if(clazz.getSuperclass()!=null){
+			ifaces.addAll(getInterfaces(clazz.getSuperclass()));
+		}
+		return ifaces;
 	}
 
 	private boolean validExportedInterfaces(ServiceReference<?> serviceReference,
