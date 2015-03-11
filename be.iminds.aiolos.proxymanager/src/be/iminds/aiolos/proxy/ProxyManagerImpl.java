@@ -90,6 +90,8 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	public final static String COMBINE = "aiolos.combine";
 	// Extra service property to select a subset of interfaces to export, or put to false for no exports
 	public final static String EXPORT = "aiolos.export";
+	// Extra service property to select a subset of interfaces to proxy, or put to false for no proxy
+	public final static String PROXY = "aiolos.proxy";
 	
 	private final BundleContext context;
 
@@ -111,7 +113,30 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 			Map<BundleContext, Collection<ListenerInfo>> listeners) {
 	
 		ServiceReference<?> serviceReference = event.getServiceReference();
-		List<String> interfaces = new ArrayList<String>(Arrays.asList((String[])serviceReference.getProperty(Constants.OBJECTCLASS)));
+		
+		// check which interfaces to proxy
+		// aiolos.proxy property on service overrides system-wide properties
+		List<String> interfaces = new ArrayList<String>();
+		Object interfacesToProxy = serviceReference.getProperty(PROXY);
+		if(interfacesToProxy instanceof String[]){
+			for(String s : (String[])interfacesToProxy){
+				interfaces.add(s);
+			}
+		} else if(interfacesToProxy instanceof String){
+			if(interfacesToProxy.equals("false")){
+				// don't proxy at all
+				return;
+			} else {
+				interfaces.add((String)interfacesToProxy);
+			}
+		} else {
+			// use defaults
+			interfaces.addAll(Arrays.asList((String[])serviceReference.getProperty(Constants.OBJECTCLASS)));
+			filterInterfaces(interfaces);
+			
+			if(interfaces.size()==0)
+				return;
+		}
 		
 		String componentId =  (String)serviceReference.getProperty(COMPONENT_ID);
 		// use component symbolic name by default
@@ -133,14 +158,11 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 		
 		// Create ComponentInfo
 		ComponentInfo component = new ComponentInfo(componentId, version, nodeId);
-		// some services should not be proxied
-		filterInterfaces(interfaces);
-		if(interfaces.size()==0)
-			return;
-		
+			
 		Object combine = serviceReference.getProperty(COMBINE);
 		if(combine!=null)
 			combineInterfaces(interfaces, combine);
+	
 		
 		// service is not yet proxied
 		// or service is an imported service (and proxy flag is thus set by remote instance)
