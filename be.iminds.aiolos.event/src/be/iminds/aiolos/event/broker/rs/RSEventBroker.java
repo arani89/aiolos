@@ -1,12 +1,11 @@
 package be.iminds.aiolos.event.broker.rs;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,7 +24,7 @@ import be.iminds.aiolos.event.broker.api.EventBroker;
 public class RSEventBroker extends AbstractEventBroker {
 
 	private ServiceTracker<EventBroker, EventBroker> eventBrokerTracker;
-	private List<EventBroker> brokers = Collections.synchronizedList(new ArrayList<EventBroker>());
+	private Map<EventBroker, String[]> brokers = Collections.synchronizedMap(new HashMap<EventBroker, String[]>());
 	
 	private ExecutorService notificationThread = Executors.newSingleThreadExecutor();
 	private Dictionary<String, Object> eventBrokerProperties = new Hashtable<String, Object>();
@@ -42,14 +41,18 @@ public class RSEventBroker extends AbstractEventBroker {
 					ServiceReference<EventBroker> reference) {
 				EventBroker broker = context.getService(reference);
 				if(broker!=RSEventBroker.this){
-					brokers.add(broker);
+					brokers.put(broker, (String[])reference.getProperty("event.topics"));
 				} 
 				return broker;
 			}
 
 			@Override
 			public void modifiedService(ServiceReference<EventBroker> reference,
-					EventBroker broker) {}
+					EventBroker broker) {
+				if(broker!=RSEventBroker.this){
+					brokers.put(broker, (String[])reference.getProperty("event.topics"));
+				} 
+			}
 
 			@Override
 			public void removedService(ServiceReference<EventBroker> reference,
@@ -101,10 +104,14 @@ public class RSEventBroker extends AbstractEventBroker {
 				@Override
 				public void run() {
 					synchronized(brokers){
-						// TODO only forward to brokers interested in the topic?
-						for(EventBroker b : brokers){
+						for(Entry<EventBroker, String[]> b : brokers.entrySet()){
 							try {
-								b.forwardEvent(e);
+								for(String topic : b.getValue()){
+									if(wildCardMatch(e.getTopic(), topic)){
+										b.getKey().forwardEvent(e);
+										break;
+									} 
+								}
 							} catch(Exception ex){
 								System.out.println("Error forwarding event "+e);
 								ex.printStackTrace();
@@ -134,5 +141,17 @@ public class RSEventBroker extends AbstractEventBroker {
 			}
 		}
 		return t;
+	}
+	
+	private static boolean wildCardMatch(String text, String pattern) {
+	    String [] tokens = pattern.split("\\*");
+	    for (String token : tokens) {
+	        int idx = text.indexOf(token);
+	        if(idx == -1) {
+	            return false;
+	        }
+	        text = text.substring(idx + token.length());
+	    }
+	    return true;
 	}
 }
