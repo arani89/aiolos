@@ -113,7 +113,6 @@ public class RSEventBroker extends AbstractEventBroker {
 									} 
 								}
 							} catch(Exception ex){
-								System.out.println("Error forwarding event "+e);
 								ex.printStackTrace();
 							}
 						}
