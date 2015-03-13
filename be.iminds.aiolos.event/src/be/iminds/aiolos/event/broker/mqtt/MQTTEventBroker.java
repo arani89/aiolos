@@ -29,17 +29,18 @@ public class MQTTEventBroker extends AbstractEventBroker implements MqttCallback
 	private MqttClient mqtt;
 	private Kryo kryo;
 	
-	public MQTTEventBroker(BundleContext context) {
+	public MQTTEventBroker(BundleContext context) throws Exception {
 		super(context);
 		
 		String server = context.getProperty("aiolos.event.mqtt.server");
 		if(server==null){
-			System.err.println("No MQTT server specified");
+			throw new Exception("No MQTT server specified");
 		}
 		try {
 			mqtt = new MqttClient(server, frameworkId);
 		} catch(MqttException e){
 			e.printStackTrace();
+			throw new Exception("Failed to connect to MQTT Server "+server, e);
 		}
 		
 		kryo = new Kryo();
