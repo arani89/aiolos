@@ -40,7 +40,7 @@ public abstract class AbstractEventBroker implements EventBroker, EventHandler {
 			public EventHandler addingService(
 					ServiceReference<EventHandler> reference) {
 				EventHandler handler = context.getService(reference);
-				if(handler!=AbstractEventBroker.this){
+				if(!(handler instanceof EventBroker)){  // ignore eventbrokers that subscribe to all
 					Object t = reference.getProperty(EventConstants.EVENT_TOPIC);
 					if(t instanceof String){
 						addTopic((String)t);

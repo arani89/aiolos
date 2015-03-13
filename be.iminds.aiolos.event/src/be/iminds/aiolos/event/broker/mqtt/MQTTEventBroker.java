@@ -60,7 +60,6 @@ public class MQTTEventBroker extends AbstractEventBroker implements MqttCallback
 		try {
 			mqtt.connect();
 			mqtt.setCallback(this);
-			mqtt.subscribe("aiolos/#");
 		} catch (MqttSecurityException e) {
 			e.printStackTrace();
 		} catch (MqttException e) {
@@ -73,6 +72,24 @@ public class MQTTEventBroker extends AbstractEventBroker implements MqttCallback
 		
 		try {
 			mqtt.disconnect();
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void addTopic(String topic){
+		super.addTopic(topic);
+		try {
+			mqtt.subscribe("aiolos/"+topic.replaceAll("\\*", "#"));
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void removeTopic(String topic){
+		super.removeTopic(topic);
+		try {
+			mqtt.unsubscribe("aiolos/"+topic.replaceAll("\\*", "#"));
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
