@@ -194,7 +194,17 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 
 					@Override
 					public void modifiedService(ServiceReference ref,
-							Object regs) {}
+							Object regs) {
+						// TODO update to RSA v 1.1 that supports modified events
+						// for now just take it down and re-export
+						Iterator<ExportRegistration> it = ((Collection<ExportRegistration>)regs).iterator();
+						while(it.hasNext()){
+							ExportRegistration r = it.next();
+							r.close();
+							it.remove();
+						}
+						((Collection<ExportRegistration>)regs).addAll(exportService(ref, null));
+					}
 
 					@Override
 					public void removedService(ServiceReference ref,
