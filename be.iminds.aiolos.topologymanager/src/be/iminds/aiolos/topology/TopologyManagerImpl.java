@@ -495,6 +495,13 @@ public class TopologyManagerImpl implements TopologyManager, RemoteServiceAdminL
 			service = null;
 		}
 		
+		if("org.osgi.service.remoteserviceadmin.RemoteServiceAdmin".equals(service)){
+			// ignore RemoteServiceAdmin finds, you never have to import those from remote endpoints
+			// however, this could lead to nasty deadlocks on whishlist as proxymanager will search for
+			// RemoteServiceAdmin service ref to export a Service...
+			return;
+		}
+		
 		// add to whishlist
 		synchronized(whishlist){
 			Map<Long, List<Filter>> filterMap = whishlist.get(service);
