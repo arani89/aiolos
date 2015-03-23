@@ -221,6 +221,8 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 					} else if(uniques instanceof String){
 						if(uniques.equals(i) || uniques.equals("*")|| uniques.equals("true"))
 							unique = true;
+					} else if(uniques instanceof Boolean){
+						unique = ((Boolean) uniques).booleanValue();
 					}
 					if(unique) {
 						iid = uniqueInstanceIds.get(serviceReference);
