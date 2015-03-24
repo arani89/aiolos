@@ -354,7 +354,9 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 				
 				for(String serviceInterface : serviceInterfaces){
 					String instanceId = (String)serviceReference.getProperty(INSTANCE_ID);
-					if(serviceReference.getProperty(CALLBACK)!=null){
+					if(serviceReference.getProperty(CALLBACK)!=null
+							|| serviceReference.getProperty(UNIQUE)!=null){
+						// TODO check here if it actually matches the serviceInterface
 						instanceId = uniqueInstanceIds.get(serviceReference);
 					}
 					
