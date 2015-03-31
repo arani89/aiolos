@@ -59,7 +59,7 @@ public abstract class AbstractEventBroker implements EventBroker, EventHandler {
 			@Override
 			public void removedService(ServiceReference<EventHandler> reference,
 					EventHandler handler) {
-				if(handler!=AbstractEventBroker.this){
+				if(!(handler instanceof EventBroker)){
 					Object t = reference.getProperty(EventConstants.EVENT_TOPIC);
 					if(t instanceof String){
 						removeTopic((String)t);
