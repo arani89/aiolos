@@ -250,8 +250,21 @@ public class ServiceProxy implements InvocationHandler {
 			// can be used to only use service when a local
 			// instance is available
 			serviceProperties.put("aiolos.proxy.local", "true");
-			proxyRegistration.setProperties(serviceProperties);
 		}
+		
+		// TODO should we create String[] instanceIds within the lock?
+		if(instances.size()>1){
+			String[] instanceIds = new String[instances.size()];
+			int k = 0;
+			for(ServiceInfo i : instances.keySet()){
+				instanceIds[k++] = i.getNodeId();
+			}
+			serviceProperties.put(ProxyManagerImpl.FRAMEWORK_UUID, instanceIds);
+		} else {
+			serviceProperties.put(ProxyManagerImpl.FRAMEWORK_UUID, instances.keySet().iterator().next().getNodeId());
+		}
+		proxyRegistration.setProperties(serviceProperties);
+
 		
 		checkPolicy();
 	}
@@ -288,6 +301,22 @@ public class ServiceProxy implements InvocationHandler {
 			Activator.logger.log(LogService.LOG_DEBUG, "Error removing proxy instance of "+componentId+" "+serviceId, e);
 		} finally {
 			write.unlock();
+		}
+		
+		// TODO should we create String[] instanceIds within the lock?
+		if(!dispose){
+			// update aiolos.framework.id ids
+			if(instances.size()>1){
+				String[] instanceIds = new String[instances.size()];
+				int k = 0;
+				for(ServiceInfo i : instances.keySet()){
+					instanceIds[k++] = i.getNodeId();
+				}
+				serviceProperties.put(ProxyManagerImpl.FRAMEWORK_UUID, instanceIds);
+			} else {
+				serviceProperties.put(ProxyManagerImpl.FRAMEWORK_UUID, instances.keySet().iterator().next().getNodeId());
+			}
+			proxyRegistration.setProperties(serviceProperties);
 		}
 		
 		checkPolicy();
@@ -373,7 +402,8 @@ public class ServiceProxy implements InvocationHandler {
 					String instanceId = serviceId.substring(serviceId.indexOf('-')+1);
 					serviceProperties.put(ProxyManagerImpl.INSTANCE_ID, instanceId);
 				}
-			} else if(!filterProperties.contains(key)){
+			} else if(!(filterProperties.contains(key) 
+					|| key.startsWith(RemoteConstants.ENDPOINT_PACKAGE_VERSION_))){
 				serviceProperties.put(key, reference.getProperty(key));
 			}
 		}
@@ -405,7 +435,7 @@ public class ServiceProxy implements InvocationHandler {
 					RemoteConstants.SERVICE_IMPORTED,
 					RemoteConstants.SERVICE_IMPORTED_CONFIGS,
 					RemoteConstants.SERVICE_INTENTS,
-					ProxyManagerImpl.IS_PROXY, 
+					ProxyManagerImpl.IS_PROXY,
 					"component.id"});
 	
 	
