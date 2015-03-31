@@ -76,7 +76,7 @@ public class RSACommands {
 			}
 			sb.append("\n");
 		}
-		Activator.logger.log(LogService.LOG_INFO, sb.toString());
+		System.out.println(sb.toString());
 	}
 
 	public void importEndpoint(String uri, String clazz){
@@ -90,12 +90,12 @@ public class RSACommands {
 			if(ir.getException()!=null){
 				throw new Exception(ir.getException());
 			} else {
-				Activator.logger.log(LogService.LOG_INFO, "Imported endpoint "+ir.getImportReference().getImportedEndpoint().getId()
+				System.out.println("Imported endpoint "+ir.getImportReference().getImportedEndpoint().getId()
 						+" "+ir.getImportReference().getImportedEndpoint().getFrameworkUUID());
 			}
 		} catch (Exception e) {
-			Activator.logger.log(LogService.LOG_ERROR, "Failed to import endpoint "+uri, e);
-		
+			System.err.println("Failed to import endpoint "+uri);
+			e.printStackTrace();
 		}
 	}
 	
@@ -110,9 +110,10 @@ public class RSACommands {
 					throw new Exception(export.getException());
 				} 
 			}
-			Activator.logger.log(LogService.LOG_INFO, "Exported service "+toExport.getProperty("service.id"));
+			System.out.println("Exported service "+toExport.getProperty("service.id"));
 		} catch (Exception e) {
-			Activator.logger.log(LogService.LOG_ERROR, "Error exporting service.", e);
+			System.err.println("Error exporting service.");
+			e.printStackTrace();
 		}
 	}
 	
@@ -123,9 +124,9 @@ public class RSACommands {
 			try {
 				sb.append("* "+c.getLocalAddress()+"->"+c.getRemoteAddress() + "\n");
 			} catch(Exception e){
-				Activator.logger.log(LogService.LOG_ERROR, "Error", e);
+				e.printStackTrace();
 			}
 		}
-		Activator.logger.log(LogService.LOG_INFO, sb.toString());
+		System.out.println(sb.toString());
 	}
 }
