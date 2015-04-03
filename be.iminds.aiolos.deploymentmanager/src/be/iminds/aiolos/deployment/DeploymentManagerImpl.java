@@ -56,7 +56,6 @@ import org.osgi.service.resolver.Resolver;
 import be.iminds.aiolos.deployment.api.DeploymentException;
 import be.iminds.aiolos.deployment.api.DeploymentManager;
 import be.iminds.aiolos.info.ComponentInfo;
-import be.iminds.aiolos.topology.api.TopologyManager;
 
 /**
  * The {@link DeploymentManagerImpl} is responsible for starting, stopping and migrating components.
@@ -252,7 +251,7 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 					// stop topologymanager to assure clean shutdown synchronization
 					// this makes sure that all endpoints are removed when this call returns
 					try {
-						ServiceReference<?> ref = context.getServiceReference(TopologyManager.class.getName());
+						ServiceReference<?> ref = context.getServiceReference("be.iminds.aiolos.topology.api.TopologyManager");
 						if(ref!=null){
 							Activator.logger.log(LogService.LOG_INFO, "Stopping bundle "+ref.getBundle().getSymbolicName());
 							ref.getBundle().stop();

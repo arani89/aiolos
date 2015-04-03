@@ -28,67 +28,46 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package be.iminds.aiolos.launch;
+package be.iminds.aiolos.cloud.local;
+
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Filter;
-import org.osgi.service.log.LogService;
-import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.ManagedServiceFactory;
 
 import be.iminds.aiolos.cloud.api.CloudManager;
 import be.iminds.aiolos.util.log.Logger;
 
+/**
+ * The {@link BundleActivator} of the CloudManager bundle. 
+ */
 public class Activator implements BundleActivator {
 
+	private ServiceRegistration<CloudManager> cmService;
 	public static Logger logger;
-	private static final String BNDRUN_DEFAULT = "run-mgmt.bndrun";
-	public static String bndrun = null;
 
 	@Override
-	public void start(BundleContext context) throws Exception {
-		logger = new Logger(context);
+	public void start(BundleContext bundleContext) throws Exception {
+		logger = new Logger(bundleContext);
 		logger.open();
-		String config = context.getProperty("aiolos.launch.config");
-		String mode = context.getProperty("aiolos.launch.mode");
-		Activator.logger.log(LogService.LOG_INFO, "Preparing AIOLOS CloudManager ...");
-		bndrun = context.getProperty("aiolos.launch.bndrun");
-		if (bndrun == null)
-			bndrun = BNDRUN_DEFAULT;
-		
-		Activator.logger.log(LogService.LOG_INFO, "Preparing AIOLOS CloudManager ...");
-		
-		Filter f = null;
-		if(config.equals("local")){
-			f = context.createFilter("(&(objectClass="+CloudManager.class.getName()+")(aiolos.cloudprovider=local))");
-		} else {
-			f = context.createFilter("(&(objectClass="+CloudManager.class.getName()+")(aiolos.cloudprovider=jclouds))");
-		}
-		ServiceTracker<CloudManager, CloudManager> tracker = new ServiceTracker<CloudManager, CloudManager>(context, f, null);
-		tracker.open();
-		CloudManager cloudManager = tracker.waitForService(10000);
-		if(cloudManager!=null){
-			CloudLauncher launcher = new CloudLauncher(cloudManager);
-		
-			if(mode.equals("launch")){
-				launcher.launch();
-			} else if(mode.equals("kill")){
-				launcher.kill();
-			}
-			
-			tracker.close();
-			
-			if(mode.equals("kill") || !config.equals("local")){
-				System.exit(0);
-			}
-		} else {
-			Activator.logger.log(LogService.LOG_ERROR, "Launch failed - No CloudManager available");
-			System.exit(-1);
-		}
+		Dictionary<String,Object> properties = new Hashtable<String,Object>();
+		properties.put("aiolos.cloudprovider", "local");
+
+		CloudManager cm = new CloudManagerLocal();
+		cmService = bundleContext.registerService(CloudManager.class, cm, properties);
 	}
 
 	@Override
 	public void stop(BundleContext context) throws Exception {
+		if (cmService != null) {
+			cmService.unregister();
+			cmService = null;
+		}
 		logger.close();
 	}
 }

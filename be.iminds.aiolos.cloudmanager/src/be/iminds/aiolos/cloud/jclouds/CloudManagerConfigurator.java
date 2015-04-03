@@ -31,10 +31,11 @@
 /**
  * 
  */
-package be.iminds.aiolos.cloud;
+package be.iminds.aiolos.cloud.jclouds;
 
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 
 import org.osgi.framework.BundleContext;
@@ -52,7 +53,7 @@ import be.iminds.aiolos.cloud.api.CloudManager;
 public class CloudManagerConfigurator implements ManagedServiceFactory {
 	
 	public  static final String PID = "be.iminds.aiolos.cloud.CloudManager";
-	private Map<String,CloudManager> managers = new HashMap<String,CloudManager>();
+	private Map<String,CloudManagerImplJClouds> managers = new HashMap<String,CloudManagerImplJClouds>();
 	private Map<String, ServiceRegistration<CloudManager>> services = new HashMap<String, ServiceRegistration<CloudManager>>();
 	private BundleContext bundleContext;
 	
@@ -71,11 +72,14 @@ public class CloudManagerConfigurator implements ManagedServiceFactory {
 	@Override
 	public void updated(String pid, Dictionary<String, ?> properties) throws ConfigurationException {
 		try {
-			CloudManager manager = managers.get(pid);
+			CloudManagerImplJClouds manager = managers.get(pid);
 			if (properties != null) {
 				if (manager == null) {
 					manager = createNewCloudManager(properties);
-					ServiceRegistration<CloudManager> service = bundleContext.registerService(CloudManager.class, manager, null);
+					
+					Dictionary<String,Object> p = new Hashtable<String,Object>();
+					p.put("aiolos.cloudprovider", "jclouds");
+					ServiceRegistration<CloudManager> service = bundleContext.registerService(CloudManager.class, manager, p);
 					managers.put(pid, manager);
 					services.put(pid, service);
 				} else {
@@ -103,10 +107,10 @@ public class CloudManagerConfigurator implements ManagedServiceFactory {
 		}
 	}
 	
-	public CloudManager createNewCloudManager(Dictionary<String, ?> properties) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+	public CloudManagerImplJClouds createNewCloudManager(Dictionary<String, ?> properties) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		String className = properties.get("class").toString();
 		Class<?> clazz = this.getClass().getClassLoader().loadClass(className);
-		CloudManager ocm = (CloudManager) clazz.newInstance();
+		CloudManagerImplJClouds ocm = (CloudManagerImplJClouds) clazz.newInstance();
 		ocm.configure(properties);
 		return ocm;
 	}

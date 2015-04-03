@@ -1,0 +1,6 @@
+-noee: true
+
+Export-Package: \
+	be.iminds.aiolos.resource,\
+	org.osgi.service.repository
+Bundle-Name: AIOLOS Repository API bundle

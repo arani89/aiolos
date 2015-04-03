@@ -28,7 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package be.iminds.aiolos.cloud;
+package be.iminds.aiolos.cloud.local;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -62,11 +62,6 @@ public class CloudManagerLocal implements CloudManager {
 
 	private static final Map<String, OSGiRuntime> processes = new HashMap<String, OSGiRuntime>();
 	private static final Map<String, VMInstance> instances = new HashMap<String, VMInstance>();
-
-	
-	@Override
-	public void configure(Dictionary<String, ?> properties) {
-	}
 
 	@Override
 	public synchronized VMInstance startVM(String bndrun, List<String> resources) throws CloudException, TimeoutException {

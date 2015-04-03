@@ -6,7 +6,6 @@ jclouds.version='[1.8.0,1.9.0)'
 
 -resolve.effective: active
 -runbundles:  \
-	osgi.enterprise;version='[5.0.0,5.1.0)',\
 	ch.qos.logback.classic,\
 	ch.qos.logback.core,\
 	slf4j.api;version=1.7.2,\
@@ -36,8 +35,8 @@ jclouds.version='[1.8.0,1.9.0)'
 	sts;version=${jclouds.version},\
 	ec2;version=${jclouds.version},\
 	aws-ec2;version=${jclouds.version},\
-	be.iminds.aiolos.api;version=${aiolos.version},\
-	be.iminds.aiolos.cloudmanager;version=${aiolos.version},\
+	be.iminds.aiolos.cloudmanager.local;version=${aiolos.version},\
+	be.iminds.aiolos.cloudmanager.jclouds;version=${aiolos.version},\
 	be.iminds.aiolos.launch;version=${aiolos.version}
 	
 -runsystempackages: sun.reflect

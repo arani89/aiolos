@@ -1,6 +1,8 @@
 Bundle-Activator: be.iminds.aiolos.topology.Activator
-Private-Package: be.iminds.aiolos.topology,\
-	be.iminds.aiolos.topology.command
+Private-Package: \
+	be.iminds.aiolos.topology,\
+	be.iminds.aiolos.topology.command,\
+	be.iminds.aiolos.util.log
 -buildpath: osgi.core;version=5.0.0,\
 	osgi.enterprise;version=5.0.0.201203141834,\
 	be.iminds.aiolos.api;version=latest,\
@@ -14,3 +16,9 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
 Bundle-DocURL: http://aiolos.intec.ugent.be
 -includeresource: ../LICENSE.txt
+Export-Package: \
+	be.iminds.aiolos.info,\
+	be.iminds.aiolos.topology.api
+Import-Package: \
+	be.iminds.aiolos.deployment.api;resolution:=optional,\
+	*

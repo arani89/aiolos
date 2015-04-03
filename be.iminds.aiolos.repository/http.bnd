@@ -1,0 +1,20 @@
+Bundle-Activator: be.iminds.aiolos.repository.Activator
+Private-Package: \
+	be.iminds.aiolos.repository,\
+	be.iminds.aiolos.repository.command,\
+	be.iminds.aiolos.util.log
+Bundle-Name: AIOLOS Repository
+Import-Package: org.apache.felix.shell;resolution:=optional,\
+	*
+-noee: true
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
+Bundle-DocURL: http://aiolos.intec.ugent.be
+-includeresource: ../LICENSE.txt
+Export-Package: \
+	be.iminds.aiolos.resource,\
+	org.osgi.service.repository
+	
+Provide-Capability: osgi.service;objectClass:List<String>="org.osgi.service.repository.Repository"
+	

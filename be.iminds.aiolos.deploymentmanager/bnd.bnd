@@ -3,8 +3,10 @@
 	org.apache.felix.gogo.runtime,\
 	be.iminds.aiolos.api;version=latest,\
 	junit.osgi
-Private-Package: be.iminds.aiolos.deployment,\
-	be.iminds.aiolos.deployment.command
+Private-Package: \
+	be.iminds.aiolos.deployment,\
+	be.iminds.aiolos.deployment.command,\
+	be.iminds.aiolos.util.log
 Bundle-Activator: be.iminds.aiolos.deployment.Activator
 Bundle-Name: AIOLOS Deployment Manager
 Import-Package: org.apache.felix.shell;resolution:=optional,\
@@ -16,3 +18,6 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
 Bundle-DocURL: http://aiolos.intec.ugent.be
 -includeresource: ../LICENSE.txt
+Export-Package: \
+	be.iminds.aiolos.deployment.api,\
+	be.iminds.aiolos.info

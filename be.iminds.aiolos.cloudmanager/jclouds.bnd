@@ -1,0 +1,14 @@
+Private-Package: \
+	be.iminds.aiolos.cloud,\
+	be.iminds.aiolos.cloud.jclouds,\
+	be.iminds.aiolos.util.log
+Bundle-Activator: be.iminds.aiolos.cloud.jclouds.Activator
+Bundle-Name: AIOLOS jClouds Cloud Manager
+
+-noee: true
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
+Bundle-DocURL: http://aiolos.intec.ugent.be
+-includeresource: ../LICENSE.txt
+Export-Package: be.iminds.aiolos.cloud.api

@@ -28,7 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package be.iminds.aiolos.cloud;
+package be.iminds.aiolos.cloud.jclouds;
 
 import java.util.Dictionary;
 import java.util.Hashtable;

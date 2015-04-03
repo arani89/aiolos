@@ -12,25 +12,7 @@
 	jclouds-sshj;version='[1.7.0, 2.0.0)',\
 	openstack-nova;version='[1.7.0, 2.0.0)',\
 	aws-ec2;version='[1.7.0, 2.0.0)'
-	
-	
-Bundle-Activator: be.iminds.aiolos.cloud.Activator
-Private-Package: be.iminds.aiolos.cloud
-	
-Bundle-Name: AIOLOS Cloud Manager
-Import-Package:  \
-	org.jclouds.logging.slf4j.config;resolution:=optional,\
-	org.jclouds.aws.ec2.compute;version='[1.7.0,2.0.0)';resolution:=optional,\
-	com.google.common.*;version='[15.0,18)',\
-	*,\
-	
-	
+
 Bundle-Version: 0.6.0
-Main-Class: be.iminds.aiolos.cloud.Main
 
--noee: true
-
-Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
-Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
-Bundle-DocURL: http://aiolos.intec.ugent.be
--includeresource: ../LICENSE.txt
+-sub: *.bnd

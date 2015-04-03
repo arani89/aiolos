@@ -9,3 +9,4 @@ Private-Package: \
 DynamicImport-Package: *
 	
 Export-Package: be.iminds.aiolos.event.broker.api
+Bundle-Version: 0.5.0

@@ -4,7 +4,9 @@
 	be.iminds.aiolos.api;version=latest,\
 	junit.osgi
 Bundle-Activator: be.iminds.aiolos.monitor.component.Activator
-Private-Package: be.iminds.aiolos.monitor.component
+Private-Package: \
+	be.iminds.aiolos.monitor.component,\
+	be.iminds.aiolos.util.log
 Bundle-Name: AIOLOS Bundle Monitor
 Bundle-Version: 0.6.0
 -noee: true
@@ -13,3 +15,4 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
 Bundle-DocURL: http://aiolos.intec.ugent.be
 -includeresource: ../LICENSE.txt
+Export-Package: be.iminds.aiolos.monitor.service.api

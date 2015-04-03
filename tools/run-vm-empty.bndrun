@@ -1,11 +1,10 @@
--runfw: org.apache.felix.framework;version='[4.2.1,4.2.1]'
+-runfw: org.apache.felix.framework;version='[4.6.1,4.6.1]'
 -runee: JavaSE-1.6
 
 aiolos.version=latest
 
 -resolve.effective: active
 -runbundles: \
-	osgi.enterprise;version='[5.0.0,5.1.0)',\
 	ch.qos.logback.classic,\
 	ch.qos.logback.core,\
 	slf4j.api;version=1.7.2,\
@@ -15,19 +14,21 @@ aiolos.version=latest
 	org.apache.felix.http.servlet-api;version=1.0.1,\
 	org.apache.felix.webconsole,\
 	org.apache.felix.webconsole.plugins.gogo,\
-	org.apache.felix.configadmin;version=1.6.0,\
-	org.apache.felix.gogo.command;version='[0.12.0,0.12.1)',\
-	org.apache.felix.gogo.runtime;version='[0.10.0,0.10.1)',\
-	org.apache.felix.gogo.shell;version='[0.10.0,0.10.1)',\
-	org.apache.felix.log;version='[1.0.1,1.0.2)',\
-	org.apache.felix.scr;version='[1.8.2,1.8.3)',\
+	org.apache.felix.configadmin,\
+	org.apache.felix.metatype,\
+	org.apache.felix.eventadmin,\
+	org.apache.felix.gogo.command,\
+	org.apache.felix.gogo.runtime,\
+	org.apache.felix.gogo.shell,\
+	org.apache.felix.log,\
+	org.apache.felix.scr,\
 	org.apache.felix.resolver,\
 	objectprofiler;version='[1.0.0,1.0.1)',\
 	kxml;version='[2.2.2,2.2.3)',\
 	org.objenesis;version='[2.1,2.2)',\
 	com.esotericsoftware.kryo;version='[2.23,2.24)',\
 	de.javakaffee.kryo-serializers;version='[0.23,0.24)',\
-	be.iminds.aiolos.api;version=${aiolos.version},\
+	be.iminds.aiolos.repository.api;version=${aiolos.version},\
 	be.iminds.aiolos.remoteserviceadmin;version=${aiolos.version},\
 	be.iminds.aiolos.deploymentmanager;version=${aiolos.version},\
 	be.iminds.aiolos.servicemonitor;version=${aiolos.version},\

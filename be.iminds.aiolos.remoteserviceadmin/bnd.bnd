@@ -30,11 +30,16 @@ Import-Package:  \
 	de.javakaffee.kryoserializers*;resolution:=optional,\
 	org.objenesis*;resolution:=optional,\
 	*
+
 Bundle-Version: 0.6.0
-Export-Package: be.iminds.aiolos.rsa.exception
+Export-Package: \
+	be.iminds.aiolos.rsa.exception,\
+	org.osgi.service.remoteserviceadmin
 -noee: true
 
 Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
 Bundle-DocURL: http://aiolos.intec.ugent.be
 -includeresource: LICENSE.txt
+
+Provide-Capability: osgi.service;objectClass:List<String>="org.osgi.service.remoteserviceadmin.RemoteServiceAdmin"

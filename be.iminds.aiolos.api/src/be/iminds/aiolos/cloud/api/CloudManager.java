@@ -92,9 +92,6 @@ public interface CloudManager {
      */
     List<VMInstance> stopVMs();
     
-
-	void configure(Dictionary<String, ?> properties);
-
 	/**
 	 * List all bndrun files accessible by this framework. Only files starting with 'run' and ending with '.bndrun' are shown.
 	 * @return A collection of accessible bndrun files.

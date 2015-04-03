@@ -28,7 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package be.iminds.aiolos.cloud;
+package be.iminds.aiolos.cloud.jclouds;
 
 import static org.jclouds.scriptbuilder.domain.Statements.exec;
 
