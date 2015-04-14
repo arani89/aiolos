@@ -122,9 +122,13 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 				context, RemoteServiceAdminListener.class, null);
 		remoteServiceAdminListenerTracker.open();
 		
-		eventAdminTracker = new ServiceTracker<EventAdmin, EventAdmin>(context,
+		try {
+			eventAdminTracker = new ServiceTracker<EventAdmin, EventAdmin>(context,
 				EventAdmin.class, null);
-		eventAdminTracker.open();
+			eventAdminTracker.open();
+		} catch(NoClassDefFoundError e){
+			Activator.logger.log(LogService.LOG_WARNING, "No EventAdmin available to send RSA events.");
+		}
 		
 		// configure!
 		String timeout = context.getProperty(Config.PROP_TIMEOUT);
@@ -228,7 +232,9 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 		}
 		
 		remoteServiceAdminListenerTracker.close();
-		eventAdminTracker.close();
+		
+		if(eventAdminTracker!=null)
+			eventAdminTracker.close();
 	}
 	
 	
@@ -570,6 +576,9 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 		/*
 		 * Asynchronous events (EventAdmin)
 		 */
+		if(eventAdminTracker==null)
+			return;
+		
 		EventAdmin eventAdmin = (EventAdmin) eventAdminTracker.getService();
 		if(eventAdmin == null)
 			return;
