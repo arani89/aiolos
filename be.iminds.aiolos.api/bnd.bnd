@@ -21,3 +21,6 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 Bundle-License: BSD New (http://opensource.org/licenses/BSD-3-Clause)
 Bundle-DocURL: http://aiolos.intec.ugent.be
 -includeresource: ../LICENSE.txt
+
+Require-Capability: \
+	compile-only
