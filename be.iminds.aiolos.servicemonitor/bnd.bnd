@@ -6,7 +6,7 @@
 Bundle-Activator: be.iminds.aiolos.monitor.component.Activator
 Private-Package: be.iminds.aiolos.monitor.component
 Bundle-Name: AIOLOS Bundle Monitor
-Bundle-Version: 0.5.0
+Bundle-Version: 0.6.0
 -noee: true
 
 Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014

@@ -7,7 +7,7 @@ Private-Package: be.iminds.aiolos.topology,\
 	junit.osgi,\
 	org.apache.felix.gogo.runtime
 Bundle-Name: AIOLOS Topology Manager
-Bundle-Version: 0.5.0
+Bundle-Version: 0.6.0
 -noee: true
 
 Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
