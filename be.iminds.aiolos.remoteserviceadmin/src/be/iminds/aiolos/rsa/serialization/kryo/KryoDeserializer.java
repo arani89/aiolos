@@ -32,11 +32,14 @@ package be.iminds.aiolos.rsa.serialization.kryo;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import be.iminds.aiolos.rsa.serialization.api.Deserializer;
 import be.iminds.aiolos.rsa.serialization.api.SerializationException;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Input;
 
 /**
@@ -44,6 +47,10 @@ import com.esotericsoftware.kryo.io.Input;
  */
 public class KryoDeserializer implements Deserializer {
 
+	// A map of specific types that should be serialized as a super type
+	// This is used in the Dianne project to change Tensor implementation type with a custom serializer
+	public static Map<String, String> conversion = new HashMap<String, String>();
+	
 	private Kryo kryo;
 	private Input input;
 	
@@ -57,7 +64,22 @@ public class KryoDeserializer implements Deserializer {
 	@Override
 	public Object readObject() throws IOException, SerializationException {
 		try {
-			return kryo.readClassAndObject(input);
+			try {
+				return kryo.readClassAndObject(input);
+			} catch(KryoException e){
+				// TODO this is rather dirty, should we find a nicer solution for this?
+				String msg = e.getMessage();
+				if(msg.startsWith("Unable to find class: ")){
+					String deserializeClass = msg.substring(22);
+					String newClass = conversion.get(deserializeClass);
+					if(newClass==null)
+						throw e;
+					Class c = this.getClass().getClassLoader().loadClass(newClass);
+					return kryo.readObjectOrNull(input, c, kryo.getSerializer(c));
+				} else {
+					throw e;
+				}
+			}
 		} catch(Throwable e ){
 			e.printStackTrace();
 			if(e.getCause()!=null && e.getCause() instanceof IOException){

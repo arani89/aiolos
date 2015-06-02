@@ -43,6 +43,7 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import be.iminds.aiolos.rsa.command.RSACommands;
+import be.iminds.aiolos.rsa.serialization.kryo.KryoDeserializer;
 import be.iminds.aiolos.rsa.serialization.kryo.KryoFactory;
 
 /**
@@ -111,6 +112,14 @@ public class Activator implements BundleActivator {
 				Object serializer = context.getService(reference);
 				String clazz = (String)reference.getProperty("kryo.serializer.class");
 				KryoFactory.addSerializer(clazz, serializer);
+				
+				String deserializer = (String)reference.getProperty("kryo.deserializer.classes");
+				if(deserializer!=null){
+					String[] clazzes = deserializer.split(",");
+					for(String c : clazzes){
+						KryoDeserializer.conversion.put(c, clazz);
+					}
+				}
 				return serializer;
 			}
 
@@ -123,6 +132,14 @@ public class Activator implements BundleActivator {
 					Object serializer) {
 				String clazz = (String)reference.getProperty("kryo.serializer.class");
 				KryoFactory.removeSerializer(clazz, serializer);
+
+				String deserializer = (String)reference.getProperty("kryo.deserializer.classes");
+				if(deserializer!=null){
+					String[] clazzes = deserializer.split(",");
+					for(String c : clazzes){
+						KryoDeserializer.conversion.remove(c);
+					}
+				}
 			}
 		});
 		kryoSerializerTracker.open();
