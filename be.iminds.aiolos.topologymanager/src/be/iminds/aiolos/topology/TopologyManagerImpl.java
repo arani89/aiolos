@@ -580,7 +580,13 @@ public class TopologyManagerImpl implements TopologyManager, RemoteServiceAdminL
 				// for now only aiolos r-osgi is supported
 				if(configs.contains("be.iminds.aiolos.r-osgi")){
 					String protocol = "r-osgi";	
-					String uri = protocol+"://"+ip+":"+port;
+					String uri; 
+					if(ip.contains(":")){
+						// ipv6
+						uri = protocol+"://["+ip+"]:"+port;
+					} else {
+						uri = protocol+"://"+ip+":"+port;
+					}
 					
 					Map<String, Object> properties = new HashMap<String, Object>();
 					properties.put("endpoint.id", uri);

@@ -30,6 +30,7 @@
  */
 package be.iminds.aiolos.rsa.util;
 
+
 /**
  * Utility class for parsing r-osgi uris
  */
@@ -39,6 +40,7 @@ public class URI {
 	private String ip;
 	private int port;
 	private String serviceId;
+	private boolean ipv6;
 	
 	public URI(final String uri){
 		parse(uri);
@@ -55,12 +57,12 @@ public class URI {
 			} else {
 				protocol = "r-osgi"; 
 			}
-			final int p2 = uriString.lastIndexOf("#"); 
+			final int p2 = uriString.lastIndexOf('#'); 
 			if (p2 > -1) {
 				serviceId = uriString.substring(p2 + 1);
 				ce = p2;
 			}
-			final int p3 = uriString.indexOf(":", cs);
+			final int p3 = uriString.lastIndexOf(':');
 			if (p3 > -1) {
 				port = Integer.parseInt(uriString.substring(p3 + 1, ce));
 				ce = p3;
@@ -75,6 +77,15 @@ public class URI {
 					port = 443;
 				}
 			}
+			if(uriString.charAt(cs)=='[' && uriString.charAt(ce-1)==']'){
+				ipv6 = true;
+				cs++;
+				ce--;
+			} else {
+				ipv6 = false;
+			}
+			
+			
 			ip = uriString.substring(cs, ce);
 		} catch (final IndexOutOfBoundsException i) {
 			throw new IllegalArgumentException(uriString + " caused " //$NON-NLS-1$
@@ -99,11 +110,14 @@ public class URI {
 	}
 	
 	public String getAddress(){
-		return ip+":"+port;
+		return (ipv6 ? "[" : "")
+				+ ip 
+				+ (ipv6 ? "]" : "")
+				+ ":"+port;
 	}
 	
 	public String toString() {
-		return protocol + "://" + ip + ":" + port + "#" +serviceId; 
+		return protocol + "://" + getAddress() + "#" +serviceId; 
 	}
 
 	public boolean equals(final Object other) {

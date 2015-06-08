@@ -33,6 +33,8 @@ package be.iminds.aiolos.rsa.network;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.Socket;
 
 import org.osgi.service.log.LogService;
@@ -152,11 +154,21 @@ public class TCPChannel implements NetworkChannel {
 
 	@Override
 	public String getRemoteAddress() {
-		return socket.getInetAddress().getHostAddress()+":"+socket.getPort();
+		InetAddress address = socket.getInetAddress();
+		if(address instanceof Inet6Address){
+			return "["+address.getHostAddress()+"]:"+socket.getPort();
+		} else {
+			return address.getHostAddress()+":"+socket.getPort();
+		}
 	}
 
 	@Override
 	public String getLocalAddress(){
-		return socket.getLocalAddress().getHostAddress()+":"+socket.getLocalPort();
+		InetAddress address = socket.getLocalAddress();
+		if(address instanceof Inet6Address){
+			return "["+address.getHostAddress()+"]:"+socket.getPort();
+		} else {
+			return address.getHostAddress()+":"+socket.getPort();
+		}
 	}
 }

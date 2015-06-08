@@ -1,12 +1,12 @@
--buildpath:  \
+-buildpath: \
 	org.apache.felix.gogo.runtime,\
 	osgi.core;version=5.0.0,\
 	osgi.enterprise;version=5.0.0.201203141834,\
 	de.javakaffee.kryo-serializers,\
 	kxml,\
-	junit.osgi,\
 	com.esotericsoftware.kryo;version=2.23,\
-	org.objenesis;version=2.1
+	org.objenesis;version=2.1,\
+	biz.aQute.junit
 	
 Bundle-Activator: be.iminds.aiolos.rsa.Activator
 Private-Package: be.iminds.aiolos.rsa.command,\

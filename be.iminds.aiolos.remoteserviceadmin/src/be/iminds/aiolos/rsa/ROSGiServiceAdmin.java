@@ -171,10 +171,10 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 		}catch(Exception e){}
 		
 		Config.IP = context.getProperty(Config.PROP_IP);
-		
+		Config.IPV6 = Boolean.parseBoolean(context.getProperty(Config.PROP_IPV6));
 		
 		try {
-			channelFactory = new TCPChannelFactory(this, Config.IP, Config.NETWORK_INTERFACE, Config.PORT);
+			channelFactory = new TCPChannelFactory(this, Config.IP, Config.NETWORK_INTERFACE, Config.PORT, Config.IPV6);
 			channelFactory.activate();
 		} catch(Exception e){
 			throw new ROSGiException("Failed to create Channel Factory", e);

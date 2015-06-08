@@ -45,6 +45,7 @@ public class Config {
 	public static String PROP_INTERFACE = "rsa.interface";
 	public static String PROP_IP = "rsa.ip";
 	public static String PROP_PORT = "rsa.port";
+	public static String PROP_IPV6 = "rsa.ipv6";
 	public static String PROP_SERIALIZATION = "rsa.serialization";
 	public static String PROP_TIMEOUT = "rsa.timeout";
 	
@@ -53,6 +54,8 @@ public class Config {
 	public static String NETWORK_INTERFACE = "eth0";  //rsa.interface
 	public static String IP = null; // rsa.ip
 	public static int TIMEOUT = 15000; // rsa.timeout
+	public static boolean IPV6 = false; // rsa.ipv6
+	
 	public static SerializationStrategy SERIALIZATION = SerializationStrategy.KRYO; // rsa.serialization
 
 }

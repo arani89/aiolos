@@ -33,6 +33,7 @@ package be.iminds.aiolos.rsa.network;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
@@ -58,6 +59,7 @@ public class TCPChannelFactory implements NetworkChannelFactory{
 
 	private String hostAddress = null;
 	private String networkInterface = null;
+	private boolean ipv6 = false;
 	private int listeningPort = 9278;
 	private TCPAcceptorThread thread;
 	
@@ -65,12 +67,19 @@ public class TCPChannelFactory implements NetworkChannelFactory{
 	
 	private MessageReceiver receiver;
 	
-	public TCPChannelFactory(MessageReceiver receiver, String ip, String networkInterface, int port){
+	public TCPChannelFactory(MessageReceiver receiver, String ip, String networkInterface, int port, boolean ipv6){
 		this.receiver = receiver;
-		this.hostAddress = ip;
+		if(ip!=null){
+			if(ip.contains(":")){
+				this.hostAddress = "["+ip+"]";
+			} else {
+				this.hostAddress = ip;
+			}
+		}
 		this.networkInterface = networkInterface;
 		if(port!=-1)
 			this.listeningPort = port;
+		this.ipv6 = ipv6;
 	}
 	
 	public void activate() throws IOException {
@@ -165,28 +174,46 @@ public class TCPChannelFactory implements NetworkChannelFactory{
 				// if not set , try to get it from a (hopefully the preferred) network interface
 				try {
 					Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
-					for (NetworkInterface netint : Collections.list(nets)){
+					for (NetworkInterface netint : Collections.list(nets)) {
 						Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
 						for (InetAddress inetAddress : Collections.list(inetAddresses)) {
-							 if(inetAddress instanceof Inet4Address){
-								 if(hostAddress!=null && (inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress()))
-									 break;  //only set loopbackadres if no other possible
-								 else {	 
-									 hostAddress = inetAddress.getHostAddress();
-						     		 break;
-								 }
-						     }
+							if (hostAddress != null
+									&& (inetAddress.isLoopbackAddress() 
+										|| inetAddress.isAnyLocalAddress())) {
+								break; // only set loopbackadres if no other possible
+							} else if (!ipv6 && inetAddress instanceof Inet4Address) {
+								hostAddress = inetAddress.getHostAddress();
+								break;
+							} else if (ipv6 && inetAddress instanceof Inet6Address) {
+								if (!(inetAddress.isLinkLocalAddress() 
+										|| inetAddress.isSiteLocalAddress())) { // restrict to global addresses?
+									String address = inetAddress.getHostAddress();
+									// remove scope from hostAddress
+									int e = address.indexOf('%');
+									if (e == -1) {
+										e = address.length();
+									}
+									hostAddress = "[" + address.substring(0, e)+ "]";
+									break;
+								}
+							}
 						}
-						if(netint.getName().equals(networkInterface) && hostAddress!=null){ // prefer configured networkInterface
+						if (netint.getName().equals(networkInterface)
+								&& hostAddress != null) { // prefer configured networkInterface
 							break;
 						}
-				    }
-				}catch(Exception e){}
+					}
+				} catch (Exception e) {
+				}
 			}
 
 			// if still not set just get the default one...
-			if(hostAddress==null)
+			if(hostAddress==null){
 				hostAddress = socket.getInetAddress().getHostAddress();
+				if(hostAddress.contains(":")){
+					hostAddress = "["+hostAddress+"]";
+				}
+			}
 			
 			return hostAddress+":"+socket.getLocalPort();
 		}
