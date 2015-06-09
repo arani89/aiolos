@@ -52,6 +52,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.Version;
 import org.osgi.service.log.LogService;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
@@ -138,7 +139,10 @@ public class ServiceProxy implements InvocationHandler {
 								|| name.equals("be.iminds.aiolos.remoteserviceadmin")
 								|| b.getBundleId()==0 ) // ignore system bundle as using bundle
 							continue;
-						ComponentInfo c = new ComponentInfo(name, b.getVersion().toString(), frameworkId);
+						
+						Version v = b.getVersion();
+						String version = v.getMajor()+"."+v.getMinor()+"."+v.getMicro();
+						ComponentInfo c = new ComponentInfo(name, version, frameworkId);
 						components.add(c);
 					}
 				}
@@ -187,8 +191,9 @@ public class ServiceProxy implements InvocationHandler {
 			
 			read.unlock();
 			
-			if(target==null)
-				throw new ServiceException("Cannot dispatch call "+method.getName()+" , no target instance available");
+			if(target==null){
+				throw new ServiceException("Cannot dispatch call "+method.getName()+" of proxy "+componentId+" "+serviceId+", no target instance available");
+			}
 
 			// Monitor callback
 			// TODO is it safe enough to call listeners synchronously (and while holding lock?)

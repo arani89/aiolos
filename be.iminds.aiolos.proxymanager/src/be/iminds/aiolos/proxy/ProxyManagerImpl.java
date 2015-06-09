@@ -46,6 +46,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.Version;
 import org.osgi.framework.hooks.service.EventListenerHook;
 import org.osgi.framework.hooks.service.FindHook;
 import org.osgi.framework.hooks.service.ListenerHook.ListenerInfo;
@@ -178,8 +179,9 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 		
 		String version =  (String)serviceReference.getProperty(VERSION);
 		// use component symbolic name by default
-		if(version==null)	
-			version = serviceReference.getBundle().getVersion().toString();
+		if(version==null){
+			version = parseVersion(serviceReference.getBundle().getVersion());
+		}
 		
 		// possibly identify unique instances of service interfaces
 		String instanceId = (String)serviceReference.getProperty(INSTANCE_ID);
@@ -244,7 +246,6 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 				}
 
 				ServiceProxy proxy = p.get(serviceId);
-				
 				switch(event.getType()){
 				case ServiceEvent.REGISTERED:
 					// create proxy or add a reference to extra instance
@@ -341,7 +342,7 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 			
 			String version =  (String)serviceReference.getProperty(VERSION);
 			if(version==null)	
-				version = serviceReference.getBundle().getVersion().toString();
+				version = parseVersion(serviceReference.getBundle().getVersion());
 			Map<String, ServiceProxy> p = getProxiesOfComponent(componentId, version);
 			if(p!=null){	
 				// In case multiple service interface present, just ignore if you find the first one proxied
@@ -516,5 +517,9 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 			}
 		}
 		return Collections.unmodifiableList(result);
+	}
+	
+	private String parseVersion(Version v){
+		return v.getMajor()+"."+v.getMinor()+"."+v.getMicro();  // ignore qualifiers
 	}
 }

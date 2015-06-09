@@ -44,6 +44,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.SynchronousBundleListener;
+import org.osgi.framework.Version;
 import org.osgi.resource.Requirement;
 import org.osgi.resource.Resource;
 import org.osgi.resource.Wire;
@@ -315,7 +316,8 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 			return null;
 		
 		final String componentId = bundle.getSymbolicName();
-		final String version = bundle.getVersion().toString();
+		Version v = bundle.getVersion();
+		final String version = v.getMajor()+"."+v.getMinor()+"."+v.getMicro();
 		final String nodeId = context.getProperty(Constants.FRAMEWORK_UUID);
 		final String name = bundle.getHeaders().get("Bundle-Name");
 		ComponentInfo c = new ComponentInfo(componentId, version, nodeId, name);
