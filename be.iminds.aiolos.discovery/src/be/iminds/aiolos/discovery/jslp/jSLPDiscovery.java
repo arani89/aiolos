@@ -39,7 +39,9 @@ import java.util.TimerTask;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogService;
 
+import be.iminds.aiolos.discovery.Activator;
 import be.iminds.aiolos.discovery.Discovery;
 import ch.ethz.iks.slp.Advertiser;
 import ch.ethz.iks.slp.Locator;
@@ -59,6 +61,11 @@ public class jSLPDiscovery extends Discovery {
 	
 	@Override
 	public void registerURI(final String uri) {
+		if(uri.contains("[")){
+			Activator.logger.log(LogService.LOG_WARNING, "jSLP does not support IPv6 URI: "+uri);
+			return;
+		}
+		
 		if(advertiseTimers.containsKey(uri))
 			return;
 		

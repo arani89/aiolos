@@ -5,8 +5,10 @@
 	junit.osgi
 Bundle-Activator: be.iminds.aiolos.discovery.Activator
 Bundle-Version: 0.6.0
-Private-Package: be.iminds.aiolos.discovery,\
-	be.iminds.aiolos.discovery.jslp
+Private-Package: \
+	be.iminds.aiolos.discovery,\
+	be.iminds.aiolos.discovery.jslp,\
+	be.iminds.aiolos.util.log
 Bundle-Name: AIOLOS Discovery
 -noee: true
 

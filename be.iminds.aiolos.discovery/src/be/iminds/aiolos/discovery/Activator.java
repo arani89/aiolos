@@ -44,8 +44,11 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import be.iminds.aiolos.discovery.jslp.jSLPDiscovery;
 import be.iminds.aiolos.topology.api.TopologyManager;
+import be.iminds.aiolos.util.log.Logger;
 
 public class Activator implements BundleActivator {
+
+	public static Logger logger;
 
 	Discovery discovery = null; 
 	
@@ -54,6 +57,9 @@ public class Activator implements BundleActivator {
 	
 	@Override
 	public void start(final BundleContext context) throws Exception {
+		logger = new Logger(context);
+		logger.open();
+		
 		discovery = new jSLPDiscovery(context);
 		
 		context.registerService(RemoteServiceAdminListener.class, new RemoteServiceAdminListener() {
@@ -152,6 +158,7 @@ public class Activator implements BundleActivator {
 		topologyTracker.close();
 		
 		discovery.stop();
+		logger.close();
 	}
 
 	
