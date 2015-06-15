@@ -25,7 +25,7 @@ Import-Package:  \
 	*,\
 	
 	
-Bundle-Version: 0.4.1
+Bundle-Version: 0.5.0
 Main-Class: be.iminds.aiolos.cloud.Main
 
 -noee: true

@@ -5,7 +5,7 @@
 	org.apache.commons.io,\
 	com.googlecode.json-simple;version=1.1.1,\
 	junit.osgi
-Bundle-Version: 0.4.1
+Bundle-Version: 0.5.0
 Bundle-Activator: be.iminds.aiolos.ui.Activator
 Private-Package: be.iminds.aiolos.ui
 Bundle-Name: AIOLOS Demo UI

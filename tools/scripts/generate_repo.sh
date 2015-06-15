@@ -26,7 +26,7 @@ do
 				echo "Copy $jar..."
 				dirname=$(basename $jar .jar)
 				mkdir -p $tools_dir/$folder/$dirname
-				cp $base_dir/$dir/generated/$jar $tools_dir/$folder/$dirname/$dirname-0.4.1.jar
+				cp $base_dir/$dir/generated/$jar $tools_dir/$folder/$dirname/$dirname-latest.jar
 			done
 		fi
 	fi

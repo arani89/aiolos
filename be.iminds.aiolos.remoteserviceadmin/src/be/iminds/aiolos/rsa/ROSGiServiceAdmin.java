@@ -127,12 +127,12 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 		eventAdminTracker.open();
 		
 		// configure!
-		String timeout = context.getProperty("rsa.timeout");
+		String timeout = context.getProperty(Config.PROP_TIMEOUT);
 		if(timeout!=null){
 			Config.TIMEOUT = Integer.parseInt(timeout);
 		}
 		
-		String serialization = context.getProperty("rsa.serialization");
+		String serialization = context.getProperty(Config.PROP_SERIALIZATION);
 		if(serialization!=null){
 			if(serialization.equals("java")){
 				Config.SERIALIZATION = SerializationStrategy.JAVA;
@@ -141,12 +141,12 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 			}
 		}
 		
-		String port = context.getProperty("rsa.port");
+		String port = context.getProperty(Config.PROP_PORT);
 		if(port!=null){
 			Config.PORT = Integer.parseInt(port);
 		}
 		
-		String networkInterface = context.getProperty("rsa.interface");
+		String networkInterface = context.getProperty(Config.PROP_INTERFACE);
 		// first check if it exists
 		try {
 			boolean exists = false;
@@ -166,7 +166,7 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 			}
 		}catch(Exception e){}
 		
-		Config.IP = context.getProperty("rsa.ip");
+		Config.IP = context.getProperty(Config.PROP_IP);
 		
 		
 		try {
@@ -194,7 +194,17 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 
 					@Override
 					public void modifiedService(ServiceReference ref,
-							Object regs) {}
+							Object regs) {
+						// TODO update to RSA v 1.1 that supports modified events
+						// for now just take it down and re-export
+						Iterator<ExportRegistration> it = ((Collection<ExportRegistration>)regs).iterator();
+						while(it.hasNext()){
+							ExportRegistration r = it.next();
+							r.close();
+							it.remove();
+						}
+						((Collection<ExportRegistration>)regs).addAll(exportService(ref, null));
+					}
 
 					@Override
 					public void removedService(ServiceReference ref,
@@ -615,13 +625,13 @@ public class ROSGiServiceAdmin implements RemoteServiceAdmin, MessageReceiver, M
 				bundle.getSymbolicName());
 		eventProperties.put("bundle.version", bundle.getVersion()); 
 		// Bundle signers
-		List<String> signersList = new ArrayList<String>();
-		Map<X509Certificate, List<X509Certificate>> signersMap = bundle.getSignerCertificates(Bundle.SIGNERS_ALL);
-		for (Iterator<X509Certificate> i = signersMap.keySet().iterator(); i.hasNext();)
-			signersList.add(i.next().toString());
-		String[] signers = (String[]) signersList.toArray(new String[signersList.size()]);
-		if (signers != null && signers.length > 0)
-			eventProperties.put("bundle.signer", signers); 
+//		List<String> signersList = new ArrayList<String>();
+//		Map<X509Certificate, List<X509Certificate>> signersMap = bundle.getSignerCertificates(Bundle.SIGNERS_ALL);
+//		for (Iterator<X509Certificate> i = signersMap.keySet().iterator(); i.hasNext();)
+//			signersList.add(i.next().toString());
+//		String[] signers = (String[]) signersList.toArray(new String[signersList.size()]);
+//		if (signers != null && signers.length > 0)
+//			eventProperties.put("bundle.signer", signers); 
 		// Exception
 		Throwable t = event.getException();
 		if (t != null)

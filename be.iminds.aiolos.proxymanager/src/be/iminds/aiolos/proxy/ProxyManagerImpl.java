@@ -71,17 +71,27 @@ import be.iminds.aiolos.proxy.api.ServiceProxyListener;
 public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManager {
 	
 	// Service property that is set when the service reference is from a service proxy
-	public final static String PROXY = "aiolos.proxy";
+	public final static String IS_PROXY = "aiolos.isproxy";
 	// Service property to know the component that hosts the service (also for imported services) - by default the symbolicName
 	public final static String COMPONENT_ID = "aiolos.component.id";
 	// Service property to know the version of the component that hosts the service (also for imported services) - by default the bundle version
 	public final static String VERSION = "aiolos.component.version";
 	// Service property identifying the service interface - by default the interface name, but can be differentiated further with the instance-id
 	public final static String SERVICE_ID = "aiolos.service.id";
+	// Service property that is set on exported services, identifying the framework uuid that exported the service
+	public final static String FRAMEWORK_UUID = "aiolos.framework.uuid";
 	// Extra service property to be set to be unique across multiple instances of the same service interface
 	public final static String INSTANCE_ID = "aiolos.instance.id";
 	// Extra service property to be set callback interfaces that should be uniquely proxied
 	public final static String CALLBACK = "aiolos.callback";
+	// Same as callback, but indicates interfaces that should be treated as unique service
+	public final static String UNIQUE = "aiolos.unique";
+	// Extra service property to select a number of interfaces that should be treated as one (e.g. interface hierarchy)
+	public final static String COMBINE = "aiolos.combine";
+	// Extra service property to select a subset of interfaces to export, or put to false for no exports
+	public final static String EXPORT = "aiolos.export";
+	// Extra service property to select a subset of interfaces to proxy, or put to false for no proxy
+	public final static String PROXY = "aiolos.proxy";
 	
 	private final BundleContext context;
 
@@ -92,18 +102,74 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	private final Set<ServiceInfo> services = Collections.synchronizedSet(new HashSet<ServiceInfo>());
 	
 	// Separate map for matching serviceReferences to generated instanceIds for callback services
-	private final Map<ServiceReference, String> callbackInstanceIds = Collections.synchronizedMap(new HashMap<ServiceReference, String>());
+	private final Map<ServiceReference, String> uniqueInstanceIds = Collections.synchronizedMap(new HashMap<ServiceReference, String>());
+	
+	// Filters to decide by default which interfaces should be proxied and exported
+	private String[] exportFilters = new String[]{"*"}; // export all
+	private String[] ignoreExportFilters = new String[]{"org.osgi.service.event.EventHandler"}; // don't export EventHandler, use EventBroker to distribute Events
+	private String[] proxyFilters = new String[]{"*","org.osgi.service.event.EventHandler"}; // proxy all and also proxy EventHandler
+	private String[] ignoreProxyFilters = new String[]{  // except these
+			"org.osgi.service.*",
+			"org.osgi.framework.hooks.*",
+			"org.apache.felix.*",
+			"java.lang.Object",
+			"org.apache.felix.shell.Command",
+			"be.iminds.aiolos.*",
+			"aQute.launcher.*",
+			"java.lang.Runnable",
+			"com.esotericsoftware.kryo.Serializer"};
 	
 	public ProxyManagerImpl(BundleContext context){
 		this.context = context;
+		
+		// configure default export/proxy behavior
+		Object property = context.getProperty("aiolos.proxy");
+		if(property!=null){
+			proxyFilters = ((String)property).split(",");
+		}
+		property = context.getProperty("aiolos.proxy.ignore");
+		if(property!=null){
+			ignoreProxyFilters = ((String)property).split(",");
+		}
+		property = context.getProperty("aiolos.export");
+		if(property!=null){
+			exportFilters = ((String)property).split(",");
+		}
+		property = context.getProperty("aiolos.export.ignore");
+		if(property!=null){
+			ignoreExportFilters = ((String)property).split(",");
+		}		
 	}
 
 	@Override
 	public void event(ServiceEvent event,
 			Map<BundleContext, Collection<ListenerInfo>> listeners) {
-		
+	
 		ServiceReference<?> serviceReference = event.getServiceReference();
-		List<String> interfaces = new ArrayList<String>(Arrays.asList((String[])serviceReference.getProperty(Constants.OBJECTCLASS)));
+		
+		// check which interfaces to proxy
+		// aiolos.proxy property on service overrides system-wide properties
+		List<String> interfaces = new ArrayList<String>();
+		Object interfacesToProxy = serviceReference.getProperty(PROXY);
+		if(interfacesToProxy instanceof String[]){
+			for(String s : (String[])interfacesToProxy){
+				interfaces.add(s);
+			}
+		} else if(interfacesToProxy instanceof String){
+			if(interfacesToProxy.equals("false")){
+				// don't proxy at all
+				return;
+			} else {
+				interfaces.add((String)interfacesToProxy);
+			}
+		} else {
+			// use defaults
+			interfaces.addAll(Arrays.asList((String[])serviceReference.getProperty(Constants.OBJECTCLASS)));
+			filterInterfaces(interfaces);
+			
+			if(interfaces.size()==0)
+				return;
+		}
 		
 		String componentId =  (String)serviceReference.getProperty(COMPONENT_ID);
 		// use component symbolic name by default
@@ -125,40 +191,44 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 		
 		// Create ComponentInfo
 		ComponentInfo component = new ComponentInfo(componentId, version, nodeId);
-		
-		// some services should not be proxied
-		filterInterfaces(interfaces);
-		if(interfaces.size()==0)
-			return;
+			
+		Object combine = serviceReference.getProperty(COMBINE);
+		if(combine!=null)
+			combineInterfaces(interfaces, combine);
+	
 		
 		// service is not yet proxied
 		// or service is an imported service (and proxy flag is thus set by remote instance)
-		if((serviceReference.getProperty(PROXY) == null)
+		if((serviceReference.getProperty(IS_PROXY) == null)
 				|| (serviceReference.getProperty("service.imported")!=null)){
-			
 			Map<String, ServiceProxy> p = getProxiesOfComponent(componentId, version);
 			
 			// create a serviceproxy for each interface
 			for(String i : interfaces){
 				String iid = instanceId;
-				// check if interface is set as callback if no instanceId set
+				// check if interface is set as unique if no instanceId set
 				if(iid==null){
-					boolean callback = false;
-					Object callbacks = serviceReference.getProperty(CALLBACK);
-					if(callbacks instanceof String[]){
-						for(String c : (String[])callbacks){
-							if(c.equals(i))
-								callback = true;
-						}
-					} else if(callbacks instanceof String){
-						if(callbacks.equals(i))
-							callback = true;
+					boolean unique = false;
+					Object uniques = serviceReference.getProperty(CALLBACK);
+					if(uniques==null){
+						uniques = serviceReference.getProperty(UNIQUE);
 					}
-					if(callback) {
-						iid = callbackInstanceIds.get(serviceReference);
+					if(uniques instanceof String[]){
+						for(String c : (String[])uniques){
+							if(c.equals(i))
+								unique = true;
+						}
+					} else if(uniques instanceof String){
+						if(uniques.equals(i) || uniques.equals("*")|| uniques.equals("true"))
+							unique = true;
+					} else if(uniques instanceof Boolean){
+						unique = ((Boolean) uniques).booleanValue();
+					}
+					if(unique) {
+						iid = uniqueInstanceIds.get(serviceReference);
 						if(iid==null){
 							iid = UUID.randomUUID().toString();
-							callbackInstanceIds.put(serviceReference, iid);
+							uniqueInstanceIds.put(serviceReference, iid);
 						}
 					}
 				}
@@ -180,7 +250,28 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 					// create proxy or add a reference to extra instance
 					if(proxy==null){
 						// add new proxy
-						proxy = new ServiceProxy(context, i, serviceId, componentId, version, serviceReference);
+						boolean export = false;
+						Object exports = serviceReference.getProperty(ProxyManagerImpl.EXPORT);
+						if(exports instanceof String[]){
+							for(String e : (String[]) exports){
+								if(e.equals(i)){
+									export = true;
+								}
+							}
+						} else if(exports instanceof String){
+							String e = (String) exports;
+							if(e.equals(i) || e.equals("*")){
+								export = true;
+							}
+						} else {
+							// check default
+							int ok = longestPrefixMatch(i, exportFilters);
+							int ignore = longestPrefixMatch(i, ignoreExportFilters);
+							if(ok>=ignore){
+								export = true;
+							}
+						}
+						proxy = new ServiceProxy(context, i, serviceId, componentId, version, serviceReference, export);
 						p.put(serviceId, proxy);
 					}
 					try {
@@ -232,7 +323,7 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 				}
 			}
 			if(event.getType()==ServiceEvent.UNREGISTERING){
-				callbackInstanceIds.remove(serviceReference);
+				uniqueInstanceIds.remove(serviceReference);
 			}
 		}
 	}
@@ -251,14 +342,22 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 			String version =  (String)serviceReference.getProperty(VERSION);
 			if(version==null)	
 				version = serviceReference.getBundle().getVersion().toString();
-			
 			Map<String, ServiceProxy> p = getProxiesOfComponent(componentId, version);
 			if(p!=null){	
 				// In case multiple service interface present, just ignore if you find the first one proxied
-				for(String serviceInterface : ((String[])serviceReference.getProperty(Constants.OBJECTCLASS))){
+				List<String> serviceInterfaces = new ArrayList<String>(Arrays.asList(((String[])serviceReference.getProperty(Constants.OBJECTCLASS))));
+				
+				Object combine = serviceReference.getProperty(COMBINE);
+				if(combine!=null){
+					combineInterfaces(serviceInterfaces, combine);
+				}
+				
+				for(String serviceInterface : serviceInterfaces){
 					String instanceId = (String)serviceReference.getProperty(INSTANCE_ID);
-					if(serviceReference.getProperty(CALLBACK)!=null){
-						instanceId = callbackInstanceIds.get(serviceReference);
+					if(serviceReference.getProperty(CALLBACK)!=null
+							|| serviceReference.getProperty(UNIQUE)!=null){
+						// TODO check here if it actually matches the serviceInterface
+						instanceId = uniqueInstanceIds.get(serviceReference);
 					}
 					
 					String serviceId = serviceInterface;
@@ -291,23 +390,64 @@ public class ProxyManagerImpl implements FindHook, EventListenerHook, ProxyManag
 	
 	protected void filterInterfaces(List<String> interfaces){
 		// remove service interfaces that should not be proxied
-		// TODO make this configurable???
 		Iterator<String> it = interfaces.iterator();
 		while(it.hasNext()){
 			String i = it.next();
-			if((i.startsWith("org.osgi.service")) // don't proxy osgi compendium services such as ManagedService or Metatype service...
-					||(i.startsWith("org.osgi.framework.hooks")) // don't proxy osgi service hooks
-					||(i.startsWith("org.apache.felix")) // don't proxy felix services (scr etc.)
-					||(i.startsWith("java.lang.Object")) // used by Gogo shell commands
-					||(i.startsWith("org.apache.felix.shell.Command")) // used by Felix shell commands
-					||(i.startsWith("be.iminds.aiolos")) // don't  proxy aiolos services
-					||(i.startsWith("aQute.launcher")) // don't  proxy aQute Launcher service
-					||(i.startsWith("java.lang.Runnable")) // TODO proxying Runnable service gives error with test runner? 
-			){
+			
+			// search longest prefix match
+			int ok = longestPrefixMatch(i, proxyFilters);
+			int ignore = longestPrefixMatch(i, ignoreProxyFilters);
+			
+			if(ignore>ok){
 				it.remove();
 			}
 		}
 	}
+	
+	protected int longestPrefixMatch(String i, String[] filters){
+		int longestPrefix = -1;
+		for(String filter : filters){
+			int prefix = -1;
+			if(filter.endsWith("*")){
+				if(i.startsWith(filter.substring(0, filter.length()-1))){
+					prefix = filter.split("\\.").length-1;
+				}
+			} else {
+				if(i.equals(filter)){
+					prefix = filter.split("\\.").length;
+				}
+			}
+		
+			if(prefix > longestPrefix){
+				longestPrefix = prefix;
+			}
+		}
+		return longestPrefix;
+	}
+	
+	protected void combineInterfaces(List<String> interfaces, Object combine){
+		if(combine instanceof String[]){
+			// only combine those defined
+			String combined = "";
+			for(String i : ((String[])combine)){
+				if(interfaces.remove(i)){
+					combined+=i+",";
+				}
+			}
+			combined = combined.substring(0, combined.length()-1);
+			interfaces.add(combined);
+		} else if(combine instanceof String && ((String)combine).equals("*")) {
+			// combine all
+			String combined = "";
+			for(String i : interfaces){
+				combined+=i+",";
+			}
+			combined = combined.substring(0, combined.length()-1);
+			interfaces.clear();
+			interfaces.add(combined);
+		}
+	}
+	
 	
 	private Map<String, ServiceProxy> getProxiesOfComponent(String componentId, String version) {
 		Map<String, ServiceProxy> p = proxies.get(componentId+"-"+version);

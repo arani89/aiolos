@@ -53,6 +53,7 @@ import org.osgi.service.resolver.ResolutionException;
 import org.osgi.service.resolver.ResolveContext;
 import org.osgi.service.resolver.Resolver;
 
+import be.iminds.aiolos.deployment.api.DeploymentException;
 import be.iminds.aiolos.deployment.api.DeploymentManager;
 import be.iminds.aiolos.info.ComponentInfo;
 import be.iminds.aiolos.topology.api.TopologyManager;
@@ -79,7 +80,7 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 		
 		// only keep application bundles, so ignore aiolos bundles
 		// TODO this is rather dirty ...
-		if(component.getComponentId().startsWith("be.iminds.aiolos"))
+		if(component==null || component.getComponentId().startsWith("be.iminds.aiolos"))
 			return;
 		
 		switch(event.getType()){	
@@ -96,17 +97,23 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 		}	
 	}
 
-	public synchronized ComponentInfo installPackage(String packageName) throws Exception {
+	public synchronized ComponentInfo installPackage(String packageName) throws DeploymentException {
 		return installPackage(packageName, null);
 	}
 	
-	public synchronized ComponentInfo installPackage(String packageName, String version) throws Exception {
+	public synchronized ComponentInfo installPackage(String packageName, String version) throws DeploymentException {
 		String componentId = null;
 		String componentVersion = null;
 		
 		ServiceReference<Resolver> resolveRef = context.getServiceReference(Resolver.class);
-		if(resolveRef!=null){
-			Resolver resolver = context.getService(resolveRef);
+		if(resolveRef==null){
+			DeploymentException e = new DeploymentException("Cannot resolve package"+packageName+", no Resolver service available");
+			Activator.logger.log(LogService.LOG_ERROR, e.getMessage(), e);
+			throw e;
+		}
+			
+		Resolver resolver = context.getService(resolveRef);
+		try {
 			Requirement req;
 			if(version!=null){
 				req = RequirementBuilder.buildPackageNameRequirement(packageName, version);
@@ -121,30 +128,42 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 				componentVersion = r.getCapabilities("osgi.identity").get(0).getAttributes().get("version").toString();
 				break;
 			}
+		} catch(ResolutionException e){
+			DeploymentException ex = new DeploymentException("Error resolving package "+packageName);
+			Activator.logger.log(LogService.LOG_ERROR, ex.getMessage(), e);
+			for(Requirement r : e.getUnresolvedRequirements()){
+				Activator.logger.log(LogService.LOG_ERROR, "Unresolved requirement "+r);
+			}
+			throw ex;
+		} finally {
 			context.ungetService(resolveRef);
 		}
+		
 		if(componentId == null){
-			throw new Exception("Could not resolve package "+packageName);
+			// TODO this cannot happen?
+			DeploymentException ex = new DeploymentException("Cannot resolve package "+packageName);
+			Activator.logger.log(LogService.LOG_ERROR, ex.getMessage(), ex);
+			throw ex;
 		}
 
 		return startComponent(componentId, componentVersion);
 	}
 	
 	@Override
-	public synchronized ComponentInfo startComponent(String componentId) throws Exception {
+	public synchronized ComponentInfo startComponent(String componentId) throws DeploymentException {
 		return startComponent(componentId, null);
 	}
 	
 	@Override
-	public synchronized ComponentInfo startComponent(String componentId, String version) throws Exception {
+	public synchronized ComponentInfo startComponent(String componentId, String version) throws DeploymentException {
 		Activator.logger.log(LogService.LOG_INFO, "Starting component "+componentId);
 		// check if already installed
 		ComponentInfo c = new ComponentInfo(componentId, version, context.getProperty(Constants.FRAMEWORK_UUID));
 		
 		if(components.containsKey(componentId)){
+			DeploymentException ex = new DeploymentException("Component "+componentId+" already installed...");
 			Activator.logger.log(LogService.LOG_INFO, "Component "+componentId+" already installed...");
-
-			throw new Exception("Component "+componentId+" already installed...");
+			throw ex;
 		}
 
 		// first resolve the component and its dependencies
@@ -152,14 +171,15 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 		
 		ServiceReference<Resolver> resolveRef = context.getServiceReference(Resolver.class);
 		if(resolveRef==null){
-			Exception e = new Exception("Cannot resolve "+componentId+", no Resolver service available");
+			DeploymentException e = new DeploymentException("Cannot resolve "+componentId+", no Resolver service available");
 			Activator.logger.log(LogService.LOG_ERROR, e.getMessage(), e);
 			throw e;
 		}
 
 		Map<Resource, List<Wire>> resources = null;
+		
+		Resolver resolver = context.getService(resolveRef);
 		try {
-			Resolver resolver = context.getService(resolveRef);
 			Requirement req;
 			if(version!=null){
 				req = RequirementBuilder.buildComponentNameRequirement(componentId, version);
@@ -168,26 +188,34 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 			}
 			ResolveContext resolveContext = new CurrentResolveContext(context, req);
 			if(resolveContext.getMandatoryResources().isEmpty()){
-				Exception e = new Exception("Component "+componentId+" not found ...");
+				DeploymentException e = new DeploymentException("Component "+componentId+" not found ...");
 				Activator.logger.log(LogService.LOG_ERROR, e.getMessage(), e);
 				throw e;
 			}
 			resources = resolver.resolve(resolveContext);
 		} catch(ResolutionException e ){
-			Exception ex = new Exception("Cannot resolve "+componentId+"; "+e.getMessage(), e);
-			Activator.logger.log(LogService.LOG_ERROR, ex.getMessage(), ex);
+			DeploymentException ex = new DeploymentException("Cannot resolve "+componentId+"; "+e.getMessage());
+			Activator.logger.log(LogService.LOG_ERROR, ex.getMessage(), e);
+			for(Requirement r : e.getUnresolvedRequirements()){
+				Activator.logger.log(LogService.LOG_ERROR, "Unresolved requirement "+r);
+			}
 			throw ex;
-		} catch(Exception e){
-			Activator.logger.log(LogService.LOG_ERROR, "Error resolving component "+componentId, e);
-			throw e;
+		} finally {
+			context.ungetService(resolveRef);
 		}
 
 		for(Resource r : resources.keySet()){
 			if(r instanceof RepositoryContent){ // Could also be something else (i.e. Concierge Resource impl when bundle is running)
 				RepositoryContent content = (RepositoryContent) r;	
 				String location = (String) r.getCapabilities("osgi.content").get(0).getAttributes().get("url");
-				Bundle b = context.installBundle(location, content.getContent());
-				toStart.add(b);
+				try {
+					Bundle b = context.installBundle(location, content.getContent());
+					toStart.add(b);
+				} catch(BundleException e){
+					DeploymentException ex = new DeploymentException("Error installing component "+componentId);
+					Activator.logger.log(LogService.LOG_ERROR, ex.getMessage(), e);
+					throw ex;
+				}
 			} 
 		}
 		context.ungetService(resolveRef);
@@ -198,8 +226,8 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 				if(!(b.getState()==Bundle.ACTIVE || b.getState()==Bundle.STARTING))
 					b.start();
 			}catch(BundleException e){
-				Exception ex = new Exception("Error starting component "+componentId, e);
-				Activator.logger.log(LogService.LOG_ERROR, ex.getMessage(), ex);
+				DeploymentException ex = new DeploymentException("Error starting component "+componentId);
+				Activator.logger.log(LogService.LOG_ERROR, ex.getMessage(), e);
 				throw ex;
 			}
 			
@@ -214,7 +242,7 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 
 	
 	@Override
-	public synchronized void stopComponent(ComponentInfo component) throws Exception {		
+	public synchronized void stopComponent(ComponentInfo component) throws DeploymentException {		
 		Activator.logger.log(LogService.LOG_INFO, "Stopping component "+component);
 
 		if(component==null){
@@ -242,7 +270,9 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 			Thread t = new Thread(shutdown);
 			t.start();
 		} else if(!components.containsKey(component)){
-			throw new Exception("Component "+component+" not present!");
+			DeploymentException ex = new DeploymentException("Component "+component+" not present!");
+			Activator.logger.log(LogService.LOG_ERROR, ex.getMessage(), ex);
+			throw ex;
 		} else {	
 			// Stop (and uninstall) bundle
 			Bundle b = components.get(component);
@@ -251,8 +281,9 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 				b.stop();
 				b.uninstall();
 			} catch (BundleException e) {
-				Exception ex = new Exception("Error stopping component "+component, e);
-				Activator.logger.log(LogService.LOG_ERROR, ex.getMessage(), ex);
+				DeploymentException ex = new DeploymentException("Error stopping component "+component);
+				Activator.logger.log(LogService.LOG_ERROR, ex.getMessage(), e);
+				throw ex;
 			}
 		}
 		
@@ -281,6 +312,9 @@ public class DeploymentManagerImpl implements DeploymentManager, SynchronousBund
 	}
 
 	private ComponentInfo getComponentInfo(Bundle bundle){
+		if(bundle.getBundleId() < context.getBundle().getBundleId())
+			return null;
+		
 		final String componentId = bundle.getSymbolicName();
 		final String version = bundle.getVersion().toString();
 		final String nodeId = context.getProperty(Constants.FRAMEWORK_UUID);

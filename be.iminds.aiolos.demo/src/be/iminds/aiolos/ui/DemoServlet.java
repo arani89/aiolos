@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
@@ -100,8 +101,8 @@ public class DemoServlet extends HttpServlet {
 		    	final String node = (String) request.getParameter("node");
 		    	
 		    	if(component!=null){
-		    		int index1 = component.indexOf('-');
-		    		int index2 = component.indexOf('-', index1+1);
+		    		int index2 = component.lastIndexOf('@');
+		    		int index1 = component.substring(0, index2).lastIndexOf('-');
 		    		String componentId = component.substring(0, index1);
 		    		String version = component.substring(index1+1, index2);
 		    		String nodeId = component.substring(index2+1);
@@ -114,7 +115,7 @@ public class DemoServlet extends HttpServlet {
 		    	final String component = (String) request.getParameter("component");
 		    	final String target = (String) request.getParameter("target");
 		    	
-		    	int index1 = component.indexOf('-');
+		    	int index1 = component.lastIndexOf('-');
 		    	String componentId = component.substring(0, index1);
 	    		String version = component.substring(index1+1);
 	    		
@@ -124,8 +125,8 @@ public class DemoServlet extends HttpServlet {
 		    	final String component = (String) request.getParameter("component");
 		    	final String to = (String) request.getParameter("target");
 		    	
-		    	int index1 = component.indexOf('-');
-	    		int index2 = component.indexOf('-', index1+1);
+		    	int index2 = component.lastIndexOf('@');
+	    		int index1 = component.substring(0, index2).lastIndexOf('-');
 	    		String componentId = component.substring(0, index1);
 	    		String version = component.substring(index1+1, index2);
 	    		String from = component.substring(index2+1);
@@ -133,8 +134,8 @@ public class DemoServlet extends HttpServlet {
 	    		migrateComponent(response.getWriter(), componentId, version, from, to);
 		    } else if(action.equals("stop")){
 		    	final String component = (String) request.getParameter("component");
-		    	int index1 = component.indexOf('-');
-	    		int index2 = component.indexOf('-', index1+1);
+		    	int index2 = component.lastIndexOf('@');
+	    		int index1 = component.substring(0, index2).lastIndexOf('-');
 	    		String componentId = component.substring(0, index1);
 	    		String version = component.substring(index1+1, index2);
 	    		String nodeId = component.substring(index2+1);
@@ -237,10 +238,10 @@ public class DemoServlet extends HttpServlet {
 				List<String> from = new ArrayList<String>();
 				List<String> to = new ArrayList<String>();
 				for(ServiceInfo i : p.getInstances()){
-					to.add(i.getComponentId()+"-"+i.getVersion()+"-"+i.getNodeId());
+					to.add(i.getComponentId()+"-"+i.getVersion()+"@"+i.getNodeId());
 				}
 				for(ComponentInfo c : p.getUsers()){
-					from.add(c.getComponentId()+"-"+c.getVersion()+"-"+c.getNodeId());
+					from.add(c.getComponentId()+"-"+c.getVersion()+"@"+c.getNodeId());
 				}
 				
 				for(String f : from){
@@ -303,14 +304,23 @@ public class DemoServlet extends HttpServlet {
 				JSONObject serviceInfo = new JSONObject();
 				String serviceId = p.getServiceId();
 				// make the serviceId cleaner for demo
-				int startIndex = serviceId.lastIndexOf('.');
-				int endIndex = serviceId.indexOf('-');
-				if(startIndex!=-1 && endIndex!=-1){
-					serviceId = serviceId.substring(startIndex+1, endIndex);
-				} else if(startIndex!=-1){
-					serviceId = serviceId.substring(startIndex+1);
+				StringTokenizer st = new StringTokenizer(serviceId, ",");
+				String cleanServiceId = "";
+				while(st.hasMoreTokens()){
+					String service = st.nextToken();
+					int startIndex = service.lastIndexOf('.');
+					int endIndex = service.indexOf('-');
+					if(startIndex!=-1 && endIndex!=-1){
+						cleanServiceId += service.substring(startIndex+1, endIndex);
+					} else if(startIndex!=-1){
+						cleanServiceId += service.substring(startIndex+1);
+					}
+					if(st.hasMoreTokens()){
+						cleanServiceId +=",";
+					}
 				}
-				serviceInfo.put("serviceId", serviceId);
+				
+				serviceInfo.put("serviceId", cleanServiceId);
 				
 				ServiceInfo s = null;
 				for(ServiceInfo si : p.getInstances()){

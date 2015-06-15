@@ -48,7 +48,7 @@ public interface DeploymentManager {
 	 * @throws Exception when no bundle is found providing the specific package or an {@link Exception} 
 	 * occured during installation.
 	 */
-	public ComponentInfo installPackage(String packageName) throws Exception;
+	public ComponentInfo installPackage(String packageName) throws DeploymentException;
 	
 	/**
 	 * Installs a component providing the given package with a version range. 
@@ -59,7 +59,7 @@ public interface DeploymentManager {
 	 * @throws Exception when no bundle is found providing the specific package or an {@link Exception} 
 	 * occured during installation.
 	 */
-	public ComponentInfo installPackage(String packageName, String version) throws Exception;
+	public ComponentInfo installPackage(String packageName, String version) throws DeploymentException;
 	
 	/**
 	 * Starts a component with the given id.
@@ -68,7 +68,7 @@ public interface DeploymentManager {
 	 * @return component	The component instance started.
 	 * @throws Exception when the bundle cannot be resolved or an {@link Exception} occured during installation.
 	 */
-	public ComponentInfo startComponent(String componentId) throws Exception;
+	public ComponentInfo startComponent(String componentId) throws DeploymentException;
 	
 	/**
 	 * Starts a component with the given id and with a specific version range.
@@ -78,7 +78,7 @@ public interface DeploymentManager {
 	 * @return component 	The component instance started.
 	 * @throws Exception when the bundle cannot be resolved or an {@link Exception} occured during installation.
 	 */
-	public ComponentInfo startComponent(String componentId, String version) throws Exception;
+	public ComponentInfo startComponent(String componentId, String version) throws DeploymentException;
 	
 	/**
 	 * Stops the given component instance.
@@ -86,7 +86,7 @@ public interface DeploymentManager {
 	 * @param component 	The component instance to stop.
 	 * @throws Exception when no such bundle was installed.
 	 */
-	public void stopComponent(ComponentInfo component) throws Exception;
+	public void stopComponent(ComponentInfo component) throws DeploymentException;
 	
 	/**
 	 * Lists all component instances running on this node.

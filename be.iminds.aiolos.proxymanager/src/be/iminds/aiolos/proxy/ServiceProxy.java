@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -76,7 +77,7 @@ public class ServiceProxy implements InvocationHandler {
 	private final Map<ServiceInfo, Object> instances = new HashMap<ServiceInfo, Object>();
 	
 	private final BundleContext context;
-	private final String serviceInterface;
+	private final List<String> serviceInterfaces;
 	private final String componentId;
 	private final String version;
 	private final String serviceId;
@@ -100,13 +101,20 @@ public class ServiceProxy implements InvocationHandler {
 	protected static List<ServiceProxyListener> listeners = new ArrayList<ServiceProxyListener>();
 	
 	public ServiceProxy(BundleContext context, String serviceInterface, 
-			String serviceId, String componentId, String version, ServiceReference<?> ref){
-		this.serviceInterface = serviceInterface;
+			String serviceId, String componentId, String version, ServiceReference<?> ref,
+			boolean export){
+		this.serviceInterfaces = new ArrayList<String>();
+		StringTokenizer t = new StringTokenizer(serviceInterface,",");
+		while(t.hasMoreTokens()){
+			this.serviceInterfaces.add(t.nextToken());
+		}
 		this.componentId = componentId;
 		this.version = version;
 		this.context = context;
 		this.reference = ref;
 		this.serviceId = serviceId;
+		
+		this.export = export;
 		// default policy?
 		this.policy = new LocalPolicy(context.getProperty("org.osgi.framework.uuid"));
 	}
@@ -124,7 +132,7 @@ public class ServiceProxy implements InvocationHandler {
 			Bundle[] usingBundles = proxyRegistration.getReference().getUsingBundles();
 			if(usingBundles!=null){
 				for(Bundle b : usingBundles){
-					if(b.getState()==Bundle.ACTIVE){
+					if(b.getState()==Bundle.ACTIVE && b.getBundleId() > context.getBundle().getBundleId()){
 						String name = b.getSymbolicName();
 						if(name.equals("be.iminds.aiolos.proxymanager") 
 								|| name.equals("be.iminds.aiolos.remoteserviceadmin")
@@ -242,8 +250,21 @@ public class ServiceProxy implements InvocationHandler {
 			// can be used to only use service when a local
 			// instance is available
 			serviceProperties.put("aiolos.proxy.local", "true");
-			proxyRegistration.setProperties(serviceProperties);
 		}
+		
+		// TODO should we create String[] instanceIds within the lock?
+		if(instances.size()>1){
+			String[] instanceIds = new String[instances.size()];
+			int k = 0;
+			for(ServiceInfo i : instances.keySet()){
+				instanceIds[k++] = i.getNodeId();
+			}
+			serviceProperties.put(ProxyManagerImpl.FRAMEWORK_UUID, instanceIds);
+		} else {
+			serviceProperties.put(ProxyManagerImpl.FRAMEWORK_UUID, instances.keySet().iterator().next().getNodeId());
+		}
+		proxyRegistration.setProperties(serviceProperties);
+
 		
 		checkPolicy();
 	}
@@ -282,6 +303,22 @@ public class ServiceProxy implements InvocationHandler {
 			write.unlock();
 		}
 		
+		// TODO should we create String[] instanceIds within the lock?
+		if(!dispose){
+			// update aiolos.framework.id ids
+			if(instances.size()>1){
+				String[] instanceIds = new String[instances.size()];
+				int k = 0;
+				for(ServiceInfo i : instances.keySet()){
+					instanceIds[k++] = i.getNodeId();
+				}
+				serviceProperties.put(ProxyManagerImpl.FRAMEWORK_UUID, instanceIds);
+			} else {
+				serviceProperties.put(ProxyManagerImpl.FRAMEWORK_UUID, instances.keySet().iterator().next().getNodeId());
+			}
+			proxyRegistration.setProperties(serviceProperties);
+		}
+		
 		checkPolicy();
 		
 		return dispose;
@@ -300,9 +337,10 @@ public class ServiceProxy implements InvocationHandler {
 					RemoteServiceAdmin rsa = (RemoteServiceAdmin) context.getService(rsaRef);
 					if(rsa!=null){
 						Map<String, Object> properties = new HashMap<String, Object>();
-						properties.put(RemoteConstants.SERVICE_EXPORTED_INTERFACES, new String[]{serviceInterface});
+						properties.put(RemoteConstants.SERVICE_EXPORTED_INTERFACES, serviceInterfaces.toArray(new String[serviceInterfaces.size()]));
 						properties.put(ProxyManagerImpl.COMPONENT_ID, componentId);
 						properties.put(ProxyManagerImpl.SERVICE_ID, serviceId);
+						properties.put(ProxyManagerImpl.FRAMEWORK_UUID, context.getProperty(Constants.FRAMEWORK_UUID));
 						Collection<ExportRegistration> exports = rsa.exportService(proxyRegistration.getReference(), properties);
 						synchronized(exportRegistrations){
 							for(ExportRegistration export : exports){
@@ -335,10 +373,18 @@ public class ServiceProxy implements InvocationHandler {
 	}
 	
 	private void registerProxyService() throws ClassNotFoundException {
-		Class<?> clazz = context.getBundle().loadClass(serviceInterface);
+		Class[] clazzes = new Class[serviceInterfaces.size()];
+		int i =0;
+		boolean isInterface = true;
+		for(String serviceInterface : serviceInterfaces){
+			clazzes[i] = context.getBundle().loadClass(serviceInterface);
+			if(!clazzes[i].isInterface())
+				isInterface = false;
+			i++;
+		}
 		Object monitorProxy;
-		if(clazz.isInterface()){
-			monitorProxy = Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class<?>[]{clazz}, this);
+		if(isInterface){
+			monitorProxy = Proxy.newProxyInstance(this.getClass().getClassLoader(), clazzes, this);
 		} else {
 			// just reregister the object in case no service interface?
 			// work around for e.g. allowing Fragment service on Android
@@ -356,16 +402,17 @@ public class ServiceProxy implements InvocationHandler {
 					String instanceId = serviceId.substring(serviceId.indexOf('-')+1);
 					serviceProperties.put(ProxyManagerImpl.INSTANCE_ID, instanceId);
 				}
-			} else if(!filterProperties.contains(key)){
+			} else if(!(filterProperties.contains(key) 
+					|| key.startsWith(RemoteConstants.ENDPOINT_PACKAGE_VERSION_))){
 				serviceProperties.put(key, reference.getProperty(key));
 			}
 		}
-		serviceProperties.put(ProxyManagerImpl.PROXY, true);
+		serviceProperties.put(ProxyManagerImpl.IS_PROXY, true);
 		serviceProperties.put(ProxyManagerImpl.COMPONENT_ID, componentId);
 		serviceProperties.put(ProxyManagerImpl.VERSION, version);
 		serviceProperties.put(ProxyManagerImpl.SERVICE_ID, serviceId);
 		
-		proxyRegistration = context.registerService(clazz.getName(), monitorProxy, serviceProperties);
+		proxyRegistration = context.registerService(serviceInterfaces.toArray(new String[serviceInterfaces.size()]), monitorProxy, serviceProperties);
 		
 	}
 	
@@ -388,7 +435,7 @@ public class ServiceProxy implements InvocationHandler {
 					RemoteConstants.SERVICE_IMPORTED,
 					RemoteConstants.SERVICE_IMPORTED_CONFIGS,
 					RemoteConstants.SERVICE_INTENTS,
-					ProxyManagerImpl.PROXY, 
+					ProxyManagerImpl.IS_PROXY,
 					"component.id"});
 	
 	
