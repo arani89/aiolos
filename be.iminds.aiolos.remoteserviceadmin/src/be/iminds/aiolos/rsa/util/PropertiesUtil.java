@@ -247,13 +247,13 @@ public class PropertiesUtil {
 	}
 
 	public static Map<String, Object> mergeProperties(final ServiceReference<?> serviceReference,
-			final Map<String, Object> overrides) {
+			final Map<String, ?> overrides) {
 		return mergeProperties(copyProperties(serviceReference, new HashMap<String, Object>()),
 				overrides);
 	}
 
 	private static Map<String, Object> mergeProperties(final Map<String, Object> source,
-			final Map<String, Object> overrides) {
+			final Map<String, ?> overrides) {
 
 		// copy to target from service reference
 		final Map<String, Object> target = copyProperties(source, new TreeMap<String, Object>(
